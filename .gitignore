@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+backend/db.sqlite3
+backend/media/
+backend/staticfiles/
+.coverage
+htmlcov/
+
+# Env
+.env
+.env.local
+
+# Node / Angular
+node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/coverage/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
