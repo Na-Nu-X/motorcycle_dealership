@@ -1,0 +1,156 @@
+<section class="hero">
+  <div class="container hero__inner">
+    <div class="hero__copy">
+      <span class="eyebrow">{{ config.tagline }}</span>
+      <h1 class="hero__title">Postavené<br />pre <em>jazdu</em>.</h1>
+      <p class="lead">
+        Nové aj preverené jazdené motocykle, autorizovaný servis a výbava od svetových značiek.
+        Príďte si vybrať stroj, ktorý vás bude baviť každý kilometer.
+      </p>
+      <div class="hero__cta">
+        <a routerLink="/motocykle" class="btn btn--primary">Prezrieť ponuku <app-icon name="arrow" /></a>
+        <a routerLink="/testovacia-jazda" class="btn btn--ghost">Testovacia jazda</a>
+      </div>
+      <dl class="hero__stats num">
+        <div><dt>Motocyklov v ponuke</dt><dd>{{ totalBikes() ?? '—' }}</dd></div>
+        <div><dt>Rokov skúseností</dt><dd>{{ yearsInBusiness }}+</dd></div>
+        <div><dt>Servisných technikov</dt><dd>6</dd></div>
+      </dl>
+    </div>
+
+    <div class="hero__visual">
+      @if (heroBike(); as bike) {
+        <a class="hero__bike" [routerLink]="['/motocykle', bike.slug]">
+          <img [src]="bike.image" [alt]="bike.brand + ' ' + bike.model" width="800" height="500" fetchpriority="high" />
+          <span class="hero__tag">
+            <span class="hero__tag-title">{{ bike.brand }} {{ bike.model }}</span>
+            <span class="price">{{ bike.price | price }}</span>
+          </span>
+        </a>
+      } @else {
+        <div class="hero__bike skeleton" aria-hidden="true"></div>
+      }
+    </div>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="cat-title">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Rýchly výber</span>
+        <h2 id="cat-title">Vyberte si štýl</h2>
+      </div>
+      <a routerLink="/motocykle" class="btn btn--link">Všetky motocykle <app-icon name="arrow" /></a>
+    </div>
+    <ul class="cats">
+      @if (facets.hasValue()) {
+        @for (c of facets.value().categories; track c.value) {
+          <li>
+            <a class="cat" [routerLink]="['/motocykle']" [queryParams]="{ kategoria: c.value }">
+              <span class="cat__name">{{ c.label }}</span>
+              <span class="cat__tag">{{ taglines[c.value] }}</span>
+              <span class="cat__count num">{{ c.count | plural: 'motorcycle' }}</span>
+              <app-icon name="arrow" class="cat__arrow" />
+            </a>
+          </li>
+        }
+      } @else {
+        @for (i of [1, 2, 3, 4, 5]; track i) {
+          <li><div class="cat skeleton" aria-hidden="true"></div></li>
+        }
+      }
+    </ul>
+  </div>
+</section>
+
+<section class="section section--alt" aria-labelledby="featured-title">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Výber predajne</span>
+        <h2 id="featured-title">Odporúčané motocykle</h2>
+      </div>
+      <a routerLink="/motocykle" class="btn btn--ghost btn--sm">Celá ponuka</a>
+    </div>
+    @if (featured.hasValue()) {
+      <div class="grid grid--cards">
+        @for (bike of featured.value().results; track bike.id) {
+          <app-bike-card [bike]="bike" />
+        }
+      </div>
+    } @else if (featured.error()) {
+      <p class="alert alert--error">Ponuku sa nepodarilo načítať.</p>
+    } @else {
+      <app-card-skeleton [count]="3" />
+    }
+  </div>
+</section>
+
+<section class="section" aria-labelledby="services-title">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Všetko pod jednou strechou</span>
+        <h2 id="services-title">Čo pre vás urobíme</h2>
+      </div>
+    </div>
+    <ul class="services">
+      <li>
+        <app-icon name="wrench" />
+        <h3>Autorizovaný servis</h3>
+        <p>Pravidelné prehliadky, diagnostika, pneuservis aj opravy. Termín si rezervujete online za minútu.</p>
+        <a routerLink="/servis" class="btn btn--link">Objednať servis <app-icon name="arrow" /></a>
+      </li>
+      <li>
+        <app-icon name="speed" />
+        <h3>Testovacie jazdy</h3>
+        <p>Vyskúšajte si motocykel skôr, než sa rozhodnete. Predvádzacie stroje sú pripravené každý deň.</p>
+        <a routerLink="/testovacia-jazda" class="btn btn--link">Rezervovať jazdu <app-icon name="arrow" /></a>
+      </li>
+      <li>
+        <app-icon name="helmet" />
+        <h3>Výbava a doplnky</h3>
+        <p>Prilby, bundy, rukavice, výfuky aj chémia. Poradíme s veľkosťou a výbavu vám odložíme.</p>
+        <a routerLink="/prislusenstvo" class="btn btn--link">Do obchodu <app-icon name="arrow" /></a>
+      </li>
+      <li>
+        <app-icon name="shield" />
+        <h3>Financovanie a protiúčet</h3>
+        <p>Leasing, úver aj výkup vášho motocykla. Pripravíme ponuku na mieru ešte v ten istý deň.</p>
+        <a routerLink="/kontakt" class="btn btn--link">Kontaktovať predajcu <app-icon name="arrow" /></a>
+      </li>
+    </ul>
+  </div>
+</section>
+
+@if (newArrivals.hasValue() && newArrivals.value().results.length) {
+  <section class="section section--alt" aria-labelledby="new-title">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Práve dorazili</span>
+          <h2 id="new-title">Novinky</h2>
+        </div>
+      </div>
+      <div class="grid grid--cards">
+        @for (bike of newArrivals.value().results; track bike.id) {
+          <app-bike-card [bike]="bike" />
+        }
+      </div>
+    </div>
+  </section>
+}
+
+<section class="section">
+  <div class="container">
+    <div class="banner">
+      <div>
+        <span class="eyebrow">Sezóna sa blíži</span>
+        <h2>Pripravte motocykel na jazdu</h2>
+        <p class="muted">Jarná prehliadka, výmena oleja a kontrola bŕzd – voľné termíny už tento týždeň.</p>
+      </div>
+      <a routerLink="/servis" class="btn btn--primary">Rezervovať servis</a>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,91 @@
+@if (item.hasValue()) {
+  @let a = item.value();
+  <div class="container acc-detail">
+    <nav aria-label="Omrvinková navigácia">
+      <ol class="breadcrumbs">
+        <li><a routerLink="/">Domov</a></li>
+        <li><a routerLink="/prislusenstvo">Príslušenstvo</a></li>
+        <li><a routerLink="/prislusenstvo" [queryParams]="{ kategoria: a.category }">{{ a.category_label }}</a></li>
+        <li aria-current="page">{{ a.name }}</li>
+      </ol>
+    </nav>
+    <div class="acc-detail__grid">
+      <div class="acc-detail__media">
+        @if (a.image) {
+          <img [src]="a.image" [alt]="a.name" width="900" height="900" />
+        }
+      </div>
+      <div>
+        <p class="eyebrow">{{ a.brand }} · {{ a.category_label }}</p>
+        <h1>{{ a.name }}</h1>
+        <p class="price acc-detail__price">
+          {{ a.price | price: true }}
+          @if (a.previous_price) { <span class="price__old">{{ a.previous_price | price: true }}</span> }
+        </p>
+        <p class="acc-detail__stock" [class.is-out]="!a.in_stock">
+          @if (a.in_stock) {
+            <app-icon name="check" /> Skladom {{ a.stock | plural: 'piece' }}
+          } @else {
+            Momentálne vypredané – radi vám tovar objednáme.
+          }
+        </p>
+        @if (a.short_description) { <p class="lead">{{ a.short_description }}</p> }
+
+        @if (a.in_stock) {
+          <form class="stack" (submit)="$event.preventDefault(); add()" novalidate>
+            @if (a.sizes.length) {
+              <fieldset id="size-group" class="acc-detail__opts" [attr.aria-describedby]="attempted() && sizeMissing() ? 'size-err' : null">
+                <legend class="label">Veľkosť <span class="req" aria-hidden="true">*</span></legend>
+                <div class="acc-detail__choices">
+                  @for (s of a.sizes; track s) {
+                    <label class="chip" [class.is-active]="size() === s">
+                      <input type="radio" name="size" class="visually-hidden" [value]="s" [checked]="size() === s" (change)="size.set(s)" />
+                      {{ s }}
+                    </label>
+                  }
+                </div>
+                @if (attempted() && sizeMissing()) { <p class="field-error" id="size-err">Vyberte veľkosť.</p> }
+              </fieldset>
+            }
+            @if (a.colors.length) {
+              <div class="field">
+                <label for="color">Farba</label>
+                <select id="color" class="select" (change)="color.set($any($event.target).value)">
+                  @for (c of a.colors; track c) { <option [value]="c" [selected]="c === color()">{{ c }}</option> }
+                </select>
+              </div>
+            }
+            <div class="acc-detail__buy">
+              <div class="qty">
+                <button type="button" (click)="setQuantity(quantity() - 1)" [disabled]="quantity() <= 1" aria-label="Znížiť množstvo"><app-icon name="minus" /></button>
+                <label for="qty" class="visually-hidden">Množstvo</label>
+                <input id="qty" type="number" inputmode="numeric" min="1" [max]="maxQty()" [value]="quantity()" (change)="setQuantity(+$any($event.target).value)" class="num" />
+                <button type="button" (click)="setQuantity(quantity() + 1)" [disabled]="quantity() >= maxQty()" aria-label="Zvýšiť množstvo"><app-icon name="plus" /></button>
+              </div>
+              <button type="submit" class="btn btn--primary"><app-icon name="cart" /> Pridať do košíka</button>
+            </div>
+          </form>
+        } @else {
+          <a routerLink="/kontakt" class="btn btn--ghost">Opýtať sa na dostupnosť</a>
+        }
+
+        @if (a.description) {
+          <hr />
+          <div class="muted" [innerHTML]="a.description"></div>
+        }
+        @if (a.sku) { <p class="muted" style="font-size: var(--fs-sm)">Kat. číslo: {{ a.sku }}</p> }
+      </div>
+    </div>
+  </div>
+} @else if (notFound()) {
+  <div class="container section">
+    <div class="empty-state">
+      <h1>Produkt sa nenašiel</h1>
+      <a routerLink="/prislusenstvo" class="btn btn--primary">Späť do obchodu</a>
+    </div>
+  </div>
+} @else if (item.error()) {
+  <div class="container section"><p class="alert alert--error" role="alert">Produkt sa nepodarilo načítať.</p></div>
+} @else {
+  <div class="container section" aria-busy="true"><div class="skeleton" style="height: 420px"></div></div>
+}

@@ -1,0 +1,63 @@
+@let s = state();
+<section class="page-hero">
+  <div class="container">
+    <span class="eyebrow">Obchod</span>
+    <h1>Príslušenstvo a oblečenie</h1>
+    <p class="lead">Prilby, kombinézy, rukavice, diely aj chémia od overených značiek. Tovar si môžete vyzdvihnúť na predajni alebo ho pošleme kuriérom.</p>
+  </div>
+</section>
+
+<div class="container shop">
+  <nav aria-label="Kategórie príslušenstva">
+    <ul class="shop__cats">
+      <li><button type="button" class="chip" [attr.aria-pressed]="!s.category" (click)="update({ category: '' })">Všetko</button></li>
+      @for (c of categories; track c.value) {
+        <li><button type="button" class="chip" [attr.aria-pressed]="s.category === c.value" (click)="update({ category: c.value })">{{ c.label }}</button></li>
+      }
+    </ul>
+  </nav>
+
+  <div class="shop__bar">
+    <div class="shop__search">
+      <label for="shop-search" class="visually-hidden">Hľadať produkt</label>
+      <app-icon name="search" />
+      <input id="shop-search" class="input" type="search" placeholder="Hľadať produkt alebo značku" [value]="s.q" (input)="search($any($event.target).value)" />
+    </div>
+    <label class="check">
+      <input type="checkbox" [checked]="s.inStock" (change)="update({ inStock: !s.inStock })" />
+      <span>Len skladom</span>
+    </label>
+    <label for="shop-sort" class="visually-hidden">Zoradiť</label>
+    <select id="shop-sort" class="select shop__sort" (change)="update({ sort: $any($event.target).value, page: s.page })">
+      @for (o of sorts; track o.value) {
+        <option [value]="o.value" [selected]="o.value === s.sort">{{ o.label }}</option>
+      }
+    </select>
+  </div>
+
+  <p class="shop__count" aria-live="polite">
+    @if (results.hasValue()) { {{ total() | plural: 'product' }} }
+  </p>
+
+  @if (results.error()) {
+    <div class="alert alert--error" role="alert">
+      <p>Produkty sa nepodarilo načítať.</p>
+      <button type="button" class="btn btn--sm" (click)="results.reload()">Skúsiť znova</button>
+    </div>
+  } @else if (!results.hasValue()) {
+    <app-card-skeleton [count]="8" />
+  } @else if (!items().length) {
+    <div class="empty-state">
+      <h2>Žiadne produkty</h2>
+      <p>Pre zvolené filtre sme nenašli žiadny produkt.</p>
+      <button type="button" class="btn btn--primary" (click)="update({ category: '', q: '', inStock: false })">Zobraziť všetko</button>
+    </div>
+  } @else {
+    <div class="grid grid--cards" [attr.aria-busy]="results.isLoading()">
+      @for (item of items(); track item.id) {
+        <app-accessory-card [item]="item" />
+      }
+    </div>
+    <app-pagination [page]="s.page" [pageCount]="pageCount()" (pageChange)="update({ page: $event })" />
+  }
+</div>

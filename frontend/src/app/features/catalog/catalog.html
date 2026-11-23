@@ -1,0 +1,194 @@
+@let f = filters();
+<section class="page-hero">
+  <div class="container">
+    <span class="eyebrow">Ponuka predajne</span>
+    <h1>Motocykle</h1>
+    <p class="lead">Nové aj preverené jazdené motocykle prémiových značiek. Každý stroj prešiel vstupnou kontrolou v našom servise.</p>
+  </div>
+</section>
+
+<div class="container catalog">
+  <!-- Filters: sidebar on desktop, drawer on mobile -->
+  <aside
+    #drawer
+    id="filters"
+    class="filters"
+    [class.is-open]="drawerOpen()"
+    tabindex="-1"
+    aria-labelledby="filters-title"
+  >
+    <div class="filters__head">
+      <h2 id="filters-title">Filtre</h2>
+      <button type="button" class="icon-btn filters__close" (click)="drawerOpen.set(false)" aria-label="Zavrieť filtre">
+        <app-icon name="close" />
+      </button>
+    </div>
+
+    <div class="filters__group">
+      <label class="filters__label" for="search">Hľadať</label>
+      <div class="filters__search">
+        <app-icon name="search" />
+        <input
+          id="search"
+          class="input"
+          type="search"
+          placeholder="Značka alebo model"
+          [value]="f.q"
+          (input)="search($any($event.target).value)"
+        />
+      </div>
+    </div>
+
+    <fieldset class="filters__group">
+      <legend class="filters__label">Stav</legend>
+      <div class="segmented" role="radiogroup">
+        @for (opt of [{ v: '', l: 'Všetky' }, { v: 'new', l: 'Nové' }, { v: 'used', l: 'Jazdené' }]; track opt.v) {
+          <label>
+            <input type="radio" name="condition" [value]="opt.v" [checked]="(f.condition ?? '') === opt.v" (change)="setCondition(opt.v)" />
+            <span>{{ opt.l }}</span>
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <fieldset class="filters__group">
+      <legend class="filters__label">Kategória</legend>
+      @if (facets.hasValue()) {
+        <ul class="filters__checks">
+          @for (c of facets.value().categories; track c.value) {
+            <li>
+              <label class="check">
+                <input type="checkbox" [checked]="f.categories.includes(c.value)" (change)="toggleCategory(c.value)" />
+                <span>{{ c.label }}</span>
+                <span class="filters__count num">{{ c.count }}</span>
+              </label>
+            </li>
+          }
+        </ul>
+      } @else {
+        <div class="skeleton" style="height: 140px"></div>
+      }
+    </fieldset>
+
+    <fieldset class="filters__group">
+      <legend class="filters__label">Značka</legend>
+      @if (facets.hasValue()) {
+        <ul class="filters__checks">
+          @for (b of facets.value().brands; track b.slug) {
+            <li>
+              <label class="check">
+                <input type="checkbox" [checked]="f.brands.includes(b.slug)" (change)="toggleBrand(b.slug)" />
+                <span>{{ b.name }}</span>
+                <span class="filters__count num">{{ b.count }}</span>
+              </label>
+            </li>
+          }
+        </ul>
+      }
+    </fieldset>
+
+    <fieldset class="filters__group">
+      <legend class="filters__label">Cena (€)</legend>
+      <div class="filters__range">
+        <div class="field">
+          <label class="visually-hidden" for="price-min">Cena od</label>
+          <input id="price-min" class="input num" type="number" inputmode="numeric" min="0" step="500"
+            [placeholder]="facets.hasValue() ? 'od ' + (facets.value().price_min | num) : 'od'"
+            [value]="f.priceMin ?? ''" (change)="setPrice('priceMin', $any($event.target).value)" />
+        </div>
+        <span aria-hidden="true">–</span>
+        <div class="field">
+          <label class="visually-hidden" for="price-max">Cena do</label>
+          <input id="price-max" class="input num" type="number" inputmode="numeric" min="0" step="500"
+            [placeholder]="facets.hasValue() ? 'do ' + (facets.value().price_max | num) : 'do'"
+            [value]="f.priceMax ?? ''" (change)="setPrice('priceMax', $any($event.target).value)" />
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="filters__group">
+      <legend class="filters__label">Objem motora</legend>
+      <div class="filters__chips">
+        @for (p of enginePresets; track p.label) {
+          <button type="button" class="chip" [attr.aria-pressed]="isEnginePreset(p)" (click)="toggleEngine(p)">{{ p.label }}</button>
+        }
+      </div>
+    </fieldset>
+
+    <div class="filters__group">
+      <label class="check">
+        <input type="checkbox" [checked]="f.a2Only" (change)="update({ a2Only: !f.a2Only })" />
+        <span>Len pre vodičský preukaz A2</span>
+      </label>
+    </div>
+
+    <div class="filters__foot">
+      <button type="button" class="btn btn--ghost" (click)="reset()" [disabled]="!activeCount()">Zrušiť filtre</button>
+      <button type="button" class="btn btn--primary filters__apply" (click)="drawerOpen.set(false)">
+        Zobraziť {{ total() | plural: 'motorcycle' }}
+      </button>
+    </div>
+  </aside>
+  @if (drawerOpen()) {
+    <div class="filters__backdrop" (click)="drawerOpen.set(false)" aria-hidden="true"></div>
+  }
+
+  <section id="results" class="results" aria-labelledby="results-title">
+    <div class="results__bar">
+      <h2 id="results-title" class="results__count" aria-live="polite">
+        @if (results.isLoading() && !results.hasValue()) {
+          Načítavam…
+        } @else {
+          {{ total() | plural: 'motorcycle' }}
+        }
+      </h2>
+      <div class="results__tools">
+        <button type="button" class="btn btn--ghost btn--sm results__filter-btn" (click)="openDrawer()" aria-controls="filters" [attr.aria-expanded]="drawerOpen()">
+          <app-icon name="filter" /> Filtre
+          @if (activeCount()) { <span class="badge badge--accent num">{{ activeCount() }}</span> }
+        </button>
+        <label class="visually-hidden" for="sort">Zoradiť podľa</label>
+        <select id="sort" class="select results__sort" [value]="f.sort" (change)="setSort($any($event.target).value)">
+          @for (o of sortOptions; track o.value) {
+            <option [value]="o.value" [selected]="o.value === f.sort">{{ o.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    @if (chips().length) {
+      <ul class="results__chips" aria-label="Aktívne filtre">
+        @for (chip of chips(); track chip.label) {
+          <li>
+            <button type="button" class="chip is-active" (click)="update(chip.patch)" [attr.aria-label]="'Odstrániť filter ' + chip.label">
+              {{ chip.label }} <app-icon name="close" />
+            </button>
+          </li>
+        }
+        <li><button type="button" class="btn btn--link" (click)="reset()">Zrušiť všetko</button></li>
+      </ul>
+    }
+
+    @if (results.error()) {
+      <div class="alert alert--error" role="alert">
+        <p>Ponuku sa nepodarilo načítať. Skontrolujte pripojenie a skúste to znova.</p>
+        <button type="button" class="btn btn--sm" (click)="results.reload()">Skúsiť znova</button>
+      </div>
+    } @else if (results.isLoading() && !results.hasValue()) {
+      <app-card-skeleton [count]="6" />
+    } @else if (!bikes().length) {
+      <div class="empty-state">
+        <h3>Nenašli sme žiadny motocykel</h3>
+        <p>Skúste upraviť alebo zrušiť niektoré filtre.</p>
+        <button type="button" class="btn btn--primary" (click)="reset()">Zrušiť filtre</button>
+      </div>
+    } @else {
+      <div class="grid grid--cards" [class.is-loading]="results.isLoading()" [attr.aria-busy]="results.isLoading()">
+        @for (bike of bikes(); track bike.id) {
+          <app-bike-card [bike]="bike" />
+        }
+      </div>
+      <app-pagination [page]="f.page" [pageCount]="pageCount()" (pageChange)="goToPage($event)" />
+    }
+  </section>
+</div>

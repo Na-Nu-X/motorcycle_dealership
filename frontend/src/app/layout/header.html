@@ -1,0 +1,46 @@
+<header class="header">
+  <div class="container header__inner">
+    <a routerLink="/" class="header__logo" aria-label="{{ config.name }} – úvodná stránka">
+      <app-logo />
+    </a>
+
+    <nav id="main-nav" class="header__nav" [class.is-open]="menuOpen()" aria-label="Hlavná navigácia">
+      <ul>
+        @for (link of links; track link.url) {
+          <li>
+            <a [routerLink]="link.url" routerLinkActive="is-active" ariaCurrentWhenActive="page">{{ link.label }}</a>
+          </li>
+        }
+      </ul>
+      <a class="header__nav-phone" [href]="config.contact.phoneHref">
+        <app-icon name="phone" /> {{ config.contact.phone }}
+      </a>
+    </nav>
+
+    <div class="header__actions">
+      <a class="header__phone" [href]="config.contact.phoneHref">
+        <app-icon name="phone" /><span class="num">{{ config.contact.phone }}</span>
+      </a>
+      <a
+        routerLink="/kosik"
+        class="header__cart icon-btn"
+        [attr.aria-label]="'Košík – ' + (cart.itemCount() | plural: 'item')"
+      >
+        <app-icon name="cart" />
+        @if (cart.itemCount() > 0) {
+          <span class="header__badge num" aria-hidden="true">{{ cart.itemCount() }}</span>
+        }
+      </a>
+      <button
+        type="button"
+        class="header__toggle icon-btn"
+        [attr.aria-expanded]="menuOpen()"
+        aria-controls="main-nav"
+        [attr.aria-label]="menuOpen() ? 'Zavrieť menu' : 'Otvoriť menu'"
+        (click)="menuOpen.set(!menuOpen())"
+      >
+        <app-icon [name]="menuOpen() ? 'close' : 'menu'" />
+      </button>
+    </div>
+  </div>
+</header>

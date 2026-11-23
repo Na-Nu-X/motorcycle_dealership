@@ -1,0 +1,61 @@
+@if (sent()) {
+  <div class="alert alert--success" role="status">
+    <h3>Ďakujeme, dopyt sme prijali</h3>
+    <p>Predajca vás bude kontaktovať ohľadom motocykla <strong>{{ motorcycleTitle() }}</strong> najneskôr nasledujúci pracovný deň.</p>
+  </div>
+} @else {
+  <form (submit)="send($event)" novalidate aria-label="Dopyt k motocyklu">
+    <fieldset class="radio-cards" style="margin-bottom: var(--space-5)">
+      <legend class="visually-hidden">Typ dopytu</legend>
+      @for (t of types; track t.value) {
+        <label>
+          <input type="radio" name="inquiry_type" [value]="t.value" [checked]="f.inquiry_type().value() === t.value" (change)="f.inquiry_type().value.set(t.value)" />
+          <strong>{{ t.label }}</strong>
+        </label>
+      }
+    </fieldset>
+
+    <div class="form-grid">
+      <div class="field">
+        <label for="iq-first">Meno <span class="req" aria-hidden="true">*</span></label>
+        <input id="iq-first" class="input" autocomplete="given-name" [formField]="f.first_name" [attr.aria-invalid]="showInvalid(f.first_name)" aria-describedby="iq-first-err" />
+        <app-field-error [field]="f.first_name" id="iq-first-err" />
+      </div>
+      <div class="field">
+        <label for="iq-last">Priezvisko <span class="req" aria-hidden="true">*</span></label>
+        <input id="iq-last" class="input" autocomplete="family-name" [formField]="f.last_name" [attr.aria-invalid]="showInvalid(f.last_name)" aria-describedby="iq-last-err" />
+        <app-field-error [field]="f.last_name" id="iq-last-err" />
+      </div>
+      <div class="field">
+        <label for="iq-email">E-mail <span class="req" aria-hidden="true">*</span></label>
+        <input id="iq-email" class="input" type="email" autocomplete="email" [formField]="f.email" [attr.aria-invalid]="showInvalid(f.email)" aria-describedby="iq-email-err" />
+        <app-field-error [field]="f.email" id="iq-email-err" />
+      </div>
+      <div class="field">
+        <label for="iq-phone">Telefón <span class="req" aria-hidden="true">*</span></label>
+        <input id="iq-phone" class="input" type="tel" autocomplete="tel" placeholder="+421 900 123 456" [formField]="f.phone" [attr.aria-invalid]="showInvalid(f.phone)" aria-describedby="iq-phone-err" />
+        <app-field-error [field]="f.phone" id="iq-phone-err" />
+      </div>
+      <div class="field span-2">
+        <label for="iq-msg">Správa</label>
+        <textarea id="iq-msg" class="textarea" [formField]="f.message" placeholder="Napr. otázka na výbavu, termín obhliadky, požadovaná výška splátky…" aria-describedby="iq-msg-err"></textarea>
+        <app-field-error [field]="f.message" id="iq-msg-err" />
+      </div>
+      <div class="field span-2">
+        <label class="check">
+          <input type="checkbox" [formField]="f.gdpr_consent" aria-describedby="iq-gdpr-err" />
+          <span>Súhlasím so <a routerLink="/ochrana-osobnych-udajov">spracovaním osobných údajov</a> za účelom vybavenia dopytu. <span class="req" aria-hidden="true">*</span></span>
+        </label>
+        <app-field-error [field]="f.gdpr_consent" id="iq-gdpr-err" />
+      </div>
+    </div>
+    <app-honeypot [field]="f.website" />
+    <app-form-alert [messages]="rootErrors(f)" />
+    <div class="form-actions">
+      <button type="submit" class="btn btn--primary" [disabled]="f().submitting()">
+        {{ f().submitting() ? 'Odosielam…' : 'Odoslať dopyt' }}
+      </button>
+      <span class="muted" style="font-size: var(--fs-sm)">Odpovieme do 24 hodín v pracovných dňoch.</span>
+    </div>
+  </form>
+}

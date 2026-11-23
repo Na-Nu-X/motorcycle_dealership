@@ -1,0 +1,45 @@
+<footer class="footer">
+  <div class="container footer__grid">
+    <div class="footer__brand">
+      <app-logo />
+      <p class="muted">{{ config.tagline }}. Predaj, servis a výbava pod jednou strechou od roku {{ config.foundedYear }}.</p>
+      <ul class="footer__social" aria-label="Sociálne siete">
+        <li><a [href]="config.social.instagram" target="_blank" rel="noopener" aria-label="Instagram"><app-icon name="instagram" /></a></li>
+        <li><a [href]="config.social.facebook" target="_blank" rel="noopener" aria-label="Facebook"><app-icon name="facebook" /></a></li>
+        <li><a [href]="config.social.youtube" target="_blank" rel="noopener" aria-label="YouTube"><app-icon name="youtube" /></a></li>
+      </ul>
+    </div>
+
+    <nav aria-label="Odkazy v pätičke">
+      <h2 class="footer__title">Navigácia</h2>
+      <ul class="footer__list">
+        @for (link of links; track link.url) {
+          <li><a [routerLink]="link.url">{{ link.label }}</a></li>
+        }
+        <li><a routerLink="/ochrana-osobnych-udajov">Ochrana osobných údajov</a></li>
+      </ul>
+    </nav>
+
+    <div>
+      <h2 class="footer__title">Kontakt</h2>
+      <address class="footer__list">
+        <p><app-icon name="pin" /> {{ config.contact.street }}, {{ config.contact.postalCode }} {{ config.contact.city }}</p>
+        <p><app-icon name="phone" /> <a [href]="config.contact.phoneHref">{{ config.contact.phone }}</a></p>
+        <p><app-icon name="mail" /> <a [href]="'mailto:' + config.contact.email">{{ config.contact.email }}</a></p>
+      </address>
+    </div>
+
+    <div>
+      <h2 class="footer__title">Otváracie hodiny</h2>
+      <dl class="footer__hours">
+        @for (row of config.openingHours; track row.days) {
+          <div><dt>{{ row.days }}</dt><dd class="num">{{ row.hours }}</dd></div>
+        }
+      </dl>
+    </div>
+  </div>
+  <div class="container footer__bottom">
+    <p>© {{ year }} {{ config.legalName }} · {{ config.companyId }} · {{ config.vatId }}</p>
+    <p><a href="/admin/" rel="nofollow">Administrácia</a></p>
+  </div>
+</footer>

@@ -1,0 +1,193 @@
+<section class="page-hero">
+  <div class="container">
+    <span class="eyebrow">Objednávka</span>
+    <h1>Košík</h1>
+  </div>
+</section>
+
+<div class="container section--tight">
+  @if (order(); as o) {
+    <div class="panel success" role="status">
+      <app-icon name="check" class="success__icon" />
+      <h2>Ďakujeme za objednávku</h2>
+      @if (o.reserved_motorcycles.length && o.total === '0.00') {
+        <p class="lead">Žiadosť o rezerváciu <strong class="num">č. {{ o.number }}</strong> sme prijali.</p>
+      } @else {
+        <p class="lead">Objednávku <strong class="num">č. {{ o.number }}</strong> v hodnote <strong>{{ o.total | price: true }}</strong> sme prijali.</p>
+      }
+      @if (o.reserved_motorcycles.length) {
+        <p>Rezervácia motocyklov: {{ o.reserved_motorcycles.join(', ') }}. Predajca vás bude kontaktovať a dohodne s vami podmienky rezervácie.</p>
+      }
+      <p class="muted">Potvrdenie sme vám poslali e-mailom. Pri osobnom odbere vás budeme informovať, keď bude tovar pripravený.</p>
+      <div class="form-actions" style="justify-content: center">
+        <a routerLink="/motocykle" class="btn btn--ghost">Motocykle</a>
+        <a routerLink="/prislusenstvo" class="btn btn--primary">Pokračovať v nákupe</a>
+      </div>
+    </div>
+  } @else if (cart.isEmpty()) {
+    <div class="empty-state">
+      <h2>Košík je prázdny</h2>
+      <p>Pridajte si výbavu z obchodu alebo rezervujte motocykl z ponuky.</p>
+      <div class="form-actions" style="justify-content: center">
+        <a routerLink="/prislusenstvo" class="btn btn--primary">Do obchodu</a>
+        <a routerLink="/motocykle" class="btn btn--ghost">Ponuka motocyklov</a>
+      </div>
+    </div>
+  } @else {
+    <div class="cart">
+      <div class="cart__items">
+        @if (cart.lines().length) {
+          <section aria-labelledby="gear-title">
+            <h2 id="gear-title" class="cart__title">Výbava a príslušenstvo <span class="muted num">({{ cart.lines().length | plural: 'item' }})</span></h2>
+            <ul class="lines">
+              @for (line of cart.lines(); track line.key) {
+                <li class="line">
+                  <a [routerLink]="['/prislusenstvo', line.slug]" class="line__img" tabindex="-1" aria-hidden="true">
+                    @if (line.image) { <img [src]="line.image" alt="" width="96" height="96" loading="lazy" /> }
+                  </a>
+                  <div class="line__info">
+                    <a [routerLink]="['/prislusenstvo', line.slug]" class="line__name">{{ line.name }}</a>
+                    <p class="muted line__variant">
+                      {{ line.brand }}
+                      @if (line.size) { · Veľkosť {{ line.size }} }
+                      @if (line.color) { · {{ line.color }} }
+                    </p>
+                    <p class="line__unit num">{{ line.unitPrice | price: true }} / ks</p>
+                  </div>
+                  <div class="qty line__qty">
+                    <button type="button" (click)="cart.setQuantity(line.key, line.quantity - 1)" [attr.aria-label]="'Znížiť množstvo – ' + line.name"><app-icon name="minus" /></button>
+                    <label class="visually-hidden" [for]="'q-' + line.key">Množstvo – {{ line.name }}</label>
+                    <input [id]="'q-' + line.key" type="number" inputmode="numeric" min="0" [max]="line.maxQuantity" [value]="line.quantity" (change)="cart.setQuantity(line.key, +$any($event.target).value)" class="num" />
+                    <button type="button" (click)="cart.setQuantity(line.key, line.quantity + 1)" [disabled]="line.quantity >= line.maxQuantity" [attr.aria-label]="'Zvýšiť množstvo – ' + line.name"><app-icon name="plus" /></button>
+                  </div>
+                  <p class="line__total price num">{{ line.unitPrice * line.quantity | price: true }}</p>
+                  <button type="button" class="icon-btn line__remove" (click)="cart.removeLine(line.key)" [attr.aria-label]="'Odstrániť ' + line.name"><app-icon name="trash" /></button>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+
+        @if (cart.motorcycles().length) {
+          <section aria-labelledby="bikes-title">
+            <h2 id="bikes-title" class="cart__title">Žiadosti o rezerváciu <span class="muted num">({{ cart.motorcycles().length | plural: 'motorcycle' }})</span></h2>
+            <ul class="lines">
+              @for (m of cart.motorcycles(); track m.slug) {
+                <li class="line line--bike">
+                  <a [routerLink]="['/motocykle', m.slug]" class="line__img" tabindex="-1" aria-hidden="true">
+                    @if (m.image) { <img [src]="m.image" alt="" width="128" height="80" loading="lazy" /> }
+                  </a>
+                  <div class="line__info">
+                    <a [routerLink]="['/motocykle', m.slug]" class="line__name">{{ m.title }}</a>
+                    <p class="muted line__variant">Rok {{ m.year }} · cena {{ m.price | price }}</p>
+                    <p class="line__unit">Nezáväzná rezervácia – cena sa nepripočítava k objednávke.</p>
+                  </div>
+                  <button type="button" class="icon-btn line__remove" (click)="cart.removeMotorcycle(m.slug)" [attr.aria-label]="'Odstrániť ' + m.title"><app-icon name="trash" /></button>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+
+        <form id="checkout" class="panel" (submit)="checkout($event)" novalidate aria-labelledby="checkout-title">
+          <h2 id="checkout-title">Kontaktné údaje</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label for="co-first">Meno <span class="req" aria-hidden="true">*</span></label>
+              <input id="co-first" class="input" autocomplete="given-name" [formField]="f.first_name" [attr.aria-invalid]="showInvalid(f.first_name)" aria-describedby="co-first-err" />
+              <app-field-error [field]="f.first_name" id="co-first-err" />
+            </div>
+            <div class="field">
+              <label for="co-last">Priezvisko <span class="req" aria-hidden="true">*</span></label>
+              <input id="co-last" class="input" autocomplete="family-name" [formField]="f.last_name" [attr.aria-invalid]="showInvalid(f.last_name)" aria-describedby="co-last-err" />
+              <app-field-error [field]="f.last_name" id="co-last-err" />
+            </div>
+            <div class="field">
+              <label for="co-email">E-mail <span class="req" aria-hidden="true">*</span></label>
+              <input id="co-email" class="input" type="email" autocomplete="email" [formField]="f.email" [attr.aria-invalid]="showInvalid(f.email)" aria-describedby="co-email-err" />
+              <app-field-error [field]="f.email" id="co-email-err" />
+            </div>
+            <div class="field">
+              <label for="co-phone">Telefón <span class="req" aria-hidden="true">*</span></label>
+              <input id="co-phone" class="input" type="tel" autocomplete="tel" [formField]="f.phone" [attr.aria-invalid]="showInvalid(f.phone)" aria-describedby="co-phone-err" />
+              <app-field-error [field]="f.phone" id="co-phone-err" />
+            </div>
+          </div>
+
+          @if (hasGear()) {
+            <h3 class="cart__sub">Doprava</h3>
+            <fieldset class="radio-cards">
+              <legend class="visually-hidden">Spôsob doručenia</legend>
+              <label>
+                <input type="radio" name="delivery" value="pickup" [checked]="f.delivery_method().value() === 'pickup'" (change)="f.delivery_method().value.set('pickup')" />
+                <strong>Osobný odber</strong>
+                <span class="muted">Na predajni – zadarmo</span>
+              </label>
+              <label>
+                <input type="radio" name="delivery" value="courier" [checked]="f.delivery_method().value() === 'courier'" (change)="f.delivery_method().value.set('courier')" />
+                <strong>Kuriér</strong>
+                <span class="muted num">{{ courierPrice() | price: true }}, nad {{ freeShippingFrom() | price }} zadarmo</span>
+              </label>
+            </fieldset>
+
+            @if (courier()) {
+              <div class="form-grid" style="margin-top: var(--space-4)">
+                <div class="field span-2">
+                  <label for="co-street">Ulica a číslo <span class="req" aria-hidden="true">*</span></label>
+                  <input id="co-street" class="input" autocomplete="street-address" [formField]="f.street" [attr.aria-invalid]="showInvalid(f.street)" aria-describedby="co-street-err" />
+                  <app-field-error [field]="f.street" id="co-street-err" />
+                </div>
+                <div class="field">
+                  <label for="co-city">Mesto <span class="req" aria-hidden="true">*</span></label>
+                  <input id="co-city" class="input" autocomplete="address-level2" [formField]="f.city" [attr.aria-invalid]="showInvalid(f.city)" aria-describedby="co-city-err" />
+                  <app-field-error [field]="f.city" id="co-city-err" />
+                </div>
+                <div class="field">
+                  <label for="co-zip">PSČ <span class="req" aria-hidden="true">*</span></label>
+                  <input id="co-zip" class="input num" inputmode="numeric" autocomplete="postal-code" placeholder="821 04" [formField]="f.postal_code" [attr.aria-invalid]="showInvalid(f.postal_code)" aria-describedby="co-zip-err" />
+                  <app-field-error [field]="f.postal_code" id="co-zip-err" />
+                </div>
+              </div>
+            }
+          }
+
+          <div class="field" style="margin-top: var(--space-4)">
+            <label for="co-note">Poznámka</label>
+            <textarea id="co-note" class="textarea" [formField]="f.note" aria-describedby="co-note-err"></textarea>
+            <app-field-error [field]="f.note" id="co-note-err" />
+          </div>
+          <div class="field" style="margin-top: var(--space-4)">
+            <label class="check">
+              <input type="checkbox" [formField]="f.gdpr_consent" aria-describedby="co-gdpr-err" />
+              <span>Súhlasím so <a routerLink="/ochrana-osobnych-udajov">spracovaním osobných údajov</a> za účelom vybavenia objednávky. <span class="req" aria-hidden="true">*</span></span>
+            </label>
+            <app-field-error [field]="f.gdpr_consent" id="co-gdpr-err" />
+          </div>
+          <app-honeypot [field]="f.website" />
+          <app-form-alert [messages]="rootErrors(f)" />
+        </form>
+      </div>
+
+      <aside class="cart__summary panel" aria-labelledby="summary-title">
+        <h2 id="summary-title">Súhrn</h2>
+        <dl class="summary-list num">
+          <div><dt>Výbava ({{ cart.lines().length | plural: 'item' }})</dt><dd>{{ cart.subtotal() | price: true }}</dd></div>
+          @if (hasGear()) {
+            <div><dt>Doprava</dt><dd>{{ shipping() ? (shipping() | price: true) : 'zadarmo' }}</dd></div>
+          }
+          @if (cart.motorcycles().length) {
+            <div><dt>Rezervácie</dt><dd>{{ cart.motorcycles().length | plural: 'motorcycle' }}</dd></div>
+          }
+          <div class="summary-list__total"><dt>Spolu s DPH</dt><dd>{{ total() | price: true }}</dd></div>
+        </dl>
+        @if (courier() && shipping() > 0) {
+          <p class="muted" style="font-size: var(--fs-sm)">Do dopravy zadarmo vám chýba {{ freeShippingFrom() - cart.subtotal() | price: true }}.</p>
+        }
+        <button type="submit" form="checkout" class="btn btn--primary btn--block" [disabled]="f().submitting()">
+          {{ f().submitting() ? 'Odosielam…' : hasGear() ? 'Odoslať objednávku' : 'Odoslať žiadosť o rezerváciu' }}
+        </button>
+        <p class="muted" style="font-size: var(--fs-xs); margin-top: var(--space-3)">Platba pri prevzatí (hotovosť alebo karta). Objednávku potvrdíme e-mailom.</p>
+      </aside>
+    </div>
+  }
+</div>

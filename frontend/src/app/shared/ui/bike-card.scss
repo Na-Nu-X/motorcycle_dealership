@@ -1,0 +1,147 @@
+.bike {
+  height: 100%;
+  transition:
+    border-color var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+
+  &:hover,
+  &:focus-within {
+    border-color: var(--color-border-strong);
+    transform: translateY(-3px);
+
+    img {
+      transform: scale(1.04);
+    }
+  }
+
+  &__media {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: var(--color-surface-2);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 400ms var(--ease);
+    }
+  }
+
+  &__noimg {
+    display: grid;
+    place-items: center;
+    height: 100%;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    text-transform: uppercase;
+    color: var(--color-border-strong);
+  }
+
+  &__badges {
+    position: absolute;
+    top: var(--space-3);
+    left: var(--space-3);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  &__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: var(--space-4) var(--space-5) var(--space-5);
+  }
+
+  &__meta {
+    margin: 0 0 var(--space-1);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-text-subtle);
+  }
+
+  &__title {
+    margin: 0 0 var(--space-4);
+    font-size: 1.6rem;
+    line-height: 1;
+  }
+
+  &__brand {
+    color: var(--color-steel-light);
+  }
+
+  &__link {
+    text-decoration: none;
+    color: var(--color-text);
+
+    // Stretched link: the whole card is clickable, but there is one link per card.
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+    }
+
+    &:focus-visible {
+      box-shadow: none;
+
+      &::after {
+        box-shadow: inset 0 0 0 3px var(--color-accent-text);
+        border-radius: var(--radius);
+      }
+    }
+  }
+
+  &__specs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+    padding-block: var(--space-3);
+    border-block: 1px solid var(--color-border);
+
+    dt {
+      font-size: var(--fs-xs);
+      color: var(--color-text-subtle);
+    }
+
+    dd {
+      font-weight: 600;
+      white-space: nowrap;
+    }
+  }
+
+  &__footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-top: auto;
+
+    .price {
+      margin: 0;
+    }
+  }
+
+  &__stock {
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--color-success);
+
+    &--on_order,
+    &--in_transit {
+      color: var(--color-info);
+    }
+
+    &--reserved {
+      color: var(--color-warning);
+    }
+
+    &--sold {
+      color: var(--color-danger);
+    }
+  }
+}

@@ -1,0 +1,155 @@
+@if (bike.hasValue()) {
+  @let b = bike.value();
+  <div class="container detail">
+    <nav aria-label="Omrvinková navigácia">
+      <ol class="breadcrumbs">
+        <li><a routerLink="/">Domov</a></li>
+        <li><a routerLink="/motocykle">Motocykle</a></li>
+        <li><a routerLink="/motocykle" [queryParams]="{ kategoria: b.category }">{{ b.category_label }}</a></li>
+        <li aria-current="page">{{ title() }}</li>
+      </ol>
+    </nav>
+
+    <div class="detail__top">
+      <section class="gallery" aria-label="Fotogaléria">
+        @if (b.images.length) {
+          <button type="button" class="gallery__main" (click)="lightboxIndex.set(activeImage())" aria-label="Zväčšiť fotografiu">
+            <img [src]="b.images[activeImage()]?.image" [alt]="b.images[activeImage()]?.alt || title()" width="1600" height="1000" />
+            <span class="gallery__zoom"><app-icon name="expand" /> Zväčšiť</span>
+          </button>
+          @if (b.images.length > 1) {
+            <ul class="gallery__thumbs">
+              @for (img of b.images; track img.id; let i = $index) {
+                <li>
+                  <button type="button" [attr.aria-pressed]="i === activeImage()" (click)="activeImage.set(i)" [attr.aria-label]="'Fotografia ' + (i + 1)">
+                    <img [src]="img.image" alt="" loading="lazy" width="160" height="100" />
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        } @else {
+          <div class="gallery__main gallery__empty">Fotografie pripravujeme</div>
+        }
+      </section>
+
+      <section class="summary" aria-labelledby="bike-title">
+        <p class="eyebrow">{{ b.brand }} · {{ b.category_label }}</p>
+        <h1 id="bike-title">{{ b.model }}</h1>
+        <div class="summary__badges">
+          @if (b.new_arrival) { <span class="badge badge--accent">Novinka</span> }
+          <span class="badge badge--outline">{{ b.used ? 'Jazdený' : 'Nový' }}</span>
+          <span class="badge badge--outline">{{ b.year }}</span>
+          <span class="badge status-dot" [class.badge--success]="b.stock_status === 'in_stock'" [class.badge--warning]="b.stock_status === 'reserved'" [class.badge--danger]="b.stock_status === 'sold'">{{ b.stock_status_label }}</span>
+        </div>
+
+        <p class="summary__price price">
+          {{ b.price | price }}
+          @if (b.previous_price) { <span class="price__old">{{ b.previous_price | price }}</span> }
+        </p>
+        <p class="muted summary__vat">Cena s DPH. Možnosť financovania a protiúčtu.</p>
+
+        <dl class="summary__keys num">
+          <div><dt>Objem</dt><dd>{{ b.engine_cc | num }} <small>cm³</small></dd></div>
+          <div><dt>Výkon</dt><dd>{{ b.power_hp | num }} <small>k</small></dd></div>
+          <div><dt>Hmotnosť</dt><dd>{{ b.weight_kg ? (b.weight_kg | num) : '—' }} <small>kg</small></dd></div>
+          <div><dt>{{ b.used ? 'Najazdené' : 'Výška sedla' }}</dt><dd>{{ b.used ? (b.mileage_km | num) : (b.seat_height_mm | num) }} <small>{{ b.used ? 'km' : 'mm' }}</small></dd></div>
+        </dl>
+
+        @if (b.short_description) { <p>{{ b.short_description }}</p> }
+
+        <div class="summary__actions">
+          @if (canBook()) {
+            <a class="btn btn--primary" routerLink="/testovacia-jazda" [queryParams]="{ motocykel: b.slug }">
+              <app-icon name="speed" /> Rezervovať testovaciu jazdu
+            </a>
+          }
+          <button type="button" class="btn btn--ghost" (click)="interested('interest')">Mám záujem</button>
+          @if (canBook() && b.stock_status !== 'reserved') {
+            <button type="button" class="btn btn--ghost" (click)="reserve()" [disabled]="cart.hasMotorcycle(b.slug)">
+              @if (cart.hasMotorcycle(b.slug)) { <app-icon name="check" /> V košíku } @else { <app-icon name="cart" /> Rezervovať do košíka }
+            </button>
+          }
+        </div>
+        <p class="summary__help muted">
+          <app-icon name="phone" /> Otázky? Volajte <a [href]="config.contact.phoneHref">{{ config.contact.phone }}</a>
+          · <button type="button" class="btn btn--link" (click)="interested('financing')">Chcem ponuku financovania</button>
+        </p>
+      </section>
+    </div>
+
+    <div class="detail__body">
+      <section aria-labelledby="specs-title">
+        <h2 id="specs-title">Technické parametre</h2>
+        <div class="specs">
+          @for (group of specs(); track group.title) {
+            <div>
+              <h3>{{ group.title }}</h3>
+              <table class="spec-table">
+                <caption class="visually-hidden">{{ group.title }}</caption>
+                <tbody>
+                  @for (row of group.rows; track row.label) {
+                    <tr><th scope="row">{{ row.label }}</th><td>{{ row.value }}</td></tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      </section>
+
+      @if (b.description) {
+        <section class="detail__desc" aria-labelledby="desc-title">
+          <h2 id="desc-title">Popis</h2>
+          <div class="prose" [innerHTML]="b.description"></div>
+        </section>
+      }
+
+      <section id="dopyt" class="panel detail__inquiry" aria-labelledby="inquiry-title">
+        <span class="eyebrow">Kontaktujte predajcu</span>
+        <h2 id="inquiry-title">Mám záujem o {{ title() }}</h2>
+        <app-inquiry-form [motorcycle]="b.slug" [motorcycleTitle]="title()" [initialType]="inquiryType()" />
+      </section>
+    </div>
+
+    @if (similar.hasValue() && similar.value().length) {
+      <section class="section" aria-labelledby="similar-title">
+        <h2 id="similar-title">Podobné motocykle</h2>
+        <div class="grid grid--cards">
+          @for (s of similar.value(); track s.id) {
+            <app-bike-card [bike]="s" />
+          }
+        </div>
+      </section>
+    }
+  </div>
+
+  <app-lightbox [images]="b.images" [title]="title()" [(index)]="lightboxIndex" />
+} @else if (notFound()) {
+  <div class="container section">
+    <div class="empty-state">
+      <h1>Motocykel sa nenašiel</h1>
+      <p>Tento motocykel už nie je v ponuke – možno sa práve našiel nový majiteľ.</p>
+      <a routerLink="/motocykle" class="btn btn--primary">Späť na ponuku</a>
+    </div>
+  </div>
+} @else if (bike.error()) {
+  <div class="container section">
+    <div class="alert alert--error" role="alert">
+      <p>Detail motocykla sa nepodarilo načítať.</p>
+      <button type="button" class="btn btn--sm" (click)="bike.reload()">Skúsiť znova</button>
+    </div>
+  </div>
+} @else {
+  <div class="container detail" aria-busy="true">
+    <div class="detail__top">
+      <div class="skeleton" style="aspect-ratio: 16 / 10"></div>
+      <div class="stack">
+        <div class="skeleton" style="height: 28px; width: 40%"></div>
+        <div class="skeleton" style="height: 64px"></div>
+        <div class="skeleton" style="height: 160px"></div>
+      </div>
+    </div>
+    <p class="visually-hidden" role="status">Načítavam detail motocykla…</p>
+  </div>
+}
