@@ -21,7 +21,7 @@ const EMPTY: ContactMessagePayload = { name: '', email: '', phone: '', subject: 
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './contact.html',
   styles: `
-    .contact { display: grid; gap: var(--space-6); padding-block: var(--space-6); }
+    .contact { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-6); padding-block: var(--space-6); }
     @media (min-width: 1040px) { .contact { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); align-items: start; } }
     .cards { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); margin: 0 0 var(--space-5); padding: 0; list-style: none; }
     .cards li { padding: var(--space-4); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-sm); }

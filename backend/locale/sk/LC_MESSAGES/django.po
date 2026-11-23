@@ -1,0 +1,238 @@
+# Slovak translations for django-unfold UI strings not covered by Django itself.
+# Compile with: python scripts/compile_messages.py
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: sk\n"
+"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);\n"
+
+msgid " By %(filter_title)s "
+msgstr " Podľa: %(filter_title)s "
+
+msgid "Add row"
+msgstr "Pridať riadok"
+
+msgid "All applications"
+msgstr "Všetky aplikácie"
+
+msgid "Apply Filters"
+msgstr "Použiť filtre"
+
+msgid "Available shortcuts"
+msgstr "Dostupné skratky"
+
+msgid "Cancel"
+msgstr "Zrušiť"
+
+msgid "Change"
+msgstr "Zmeniť"
+
+msgid "Changelist shortcuts"
+msgstr "Skratky zoznamu"
+
+msgid "Clear"
+msgstr "Vymazať"
+
+msgid "Clear selection"
+msgstr "Zrušiť výber"
+
+msgid "Click here to select the objects across all pages"
+msgstr "Kliknite sem pre výber záznamov na všetkých stranách"
+
+msgid "Click to cancel"
+msgstr "Kliknutím zrušíte"
+
+msgid "Click to download"
+msgstr "Kliknutím stiahnete"
+
+msgid "Command tool shortcuts"
+msgstr "Skratky príkazového nástroja"
+
+msgid "Create new record"
+msgstr "Vytvoriť nový záznam"
+
+msgid "Dark"
+msgstr "Tmavý"
+
+msgid "Dataset not found. No action performed."
+msgstr "Dataset sa nenašiel. Žiadna akcia nebola vykonaná."
+
+msgid "Date"
+msgstr "Dátum"
+
+msgid "Date from"
+msgstr "Dátum od"
+
+msgid "Date to"
+msgstr "Dátum do"
+
+msgid "False"
+msgstr "Nie"
+
+msgid "Filters"
+msgstr "Filtre"
+
+msgid "From"
+msgstr "Od"
+
+msgid "General"
+msgstr "Všeobecné"
+
+msgid "Global shortcuts"
+msgstr "Globálne skratky"
+
+msgid "Go back"
+msgstr "Späť"
+
+msgid "Hide counts"
+msgstr "Skryť počty"
+
+msgid "Light"
+msgstr "Svetlý"
+
+msgid "Log in again"
+msgstr "Prihlásiť sa znova"
+
+msgid "Navigate"
+msgstr "Navigovať"
+
+msgid "Next"
+msgstr "Ďalej"
+
+msgid "No data"
+msgstr "Žiadne údaje"
+
+msgid "No results found"
+msgstr "Nenašli sa žiadne výsledky"
+
+msgid "No, take me back"
+msgstr "Nie, vrátiť sa"
+
+msgid "Nothing matched your search"
+msgstr "Vyhľadávaniu nič nezodpovedá"
+
+msgid "Objects"
+msgstr "Záznamy"
+
+msgid "Open command tool"
+msgstr "Otvoriť príkazový nástroj"
+
+msgid "Open selection"
+msgstr "Otvoriť výber"
+
+msgid "Open selection in new tab"
+msgstr "Otvoriť výber na novej karte"
+
+msgid "Open shortcuts list"
+msgstr "Zoznam klávesových skratiek"
+
+msgid "Previous"
+msgstr "Predchádzajúce"
+
+msgid "Recent searches"
+msgstr "Nedávne vyhľadávania"
+
+msgid "Record picture"
+msgstr "Obrázok záznamu"
+
+msgid "Remove from sorting"
+msgstr "Odstrániť z triedenia"
+
+msgid "Reset filters"
+msgstr "Zrušiť filtre"
+
+msgid "Run"
+msgstr "Spustiť"
+
+msgid "Run the selected action"
+msgstr "Spustiť vybranú akciu"
+
+msgid "Save and view"
+msgstr "Uložiť a zobraziť"
+
+msgid "Search"
+msgstr "Hľadať"
+
+msgid "Search apps and models..."
+msgstr "Hľadať aplikácie a modely…"
+
+msgid "Select"
+msgstr "Vybrať"
+
+msgid "Select action"
+msgstr "Vyberte akciu"
+
+msgid "Select action to run"
+msgstr "Vyberte akciu na spustenie"
+
+msgid "Select currency"
+msgstr "Vyberte menu"
+
+msgid "Select format"
+msgstr "Vyberte formát"
+
+msgid "Select record"
+msgstr "Vyberte záznam"
+
+msgid "Select value"
+msgstr "Vyberte hodnotu"
+
+msgid "Show counts"
+msgstr "Zobraziť počty"
+
+msgid "Submit"
+msgstr "Odoslať"
+
+msgid "Summary"
+msgstr "Súhrn"
+
+msgid "System"
+msgstr "Systém"
+
+msgid "This item will be deleted."
+msgstr "Táto položka bude odstránená."
+
+msgid "This page yielded into no results."
+msgstr "Táto stránka neobsahuje žiadne výsledky."
+
+msgid "Time"
+msgstr "Čas"
+
+msgid "To"
+msgstr "Do"
+
+msgid "Toggle dark/light mode"
+msgstr "Prepnúť tmavý/svetlý režim"
+
+msgid "Toggle filter"
+msgstr "Zobraziť/skryť filter"
+
+msgid "Toggle password visibility"
+msgstr "Zobraziť/skryť heslo"
+
+msgid "Toggle sidebar"
+msgstr "Zobraziť/skryť bočný panel"
+
+msgid "Toggle sorting"
+msgstr "Prepnúť triedenie"
+
+msgid "True"
+msgstr "Áno"
+
+msgid "Type to search"
+msgstr "Píšte pre vyhľadávanie"
+
+msgid "Value"
+msgstr "Hodnota"
+
+msgid "View"
+msgstr "Zobraziť"
+
+msgid "You can not create nested object without parent"
+msgstr "Vnorený záznam nie je možné vytvoriť bez nadradeného záznamu"
+
+msgid "You have been successfully logged out from the administration"
+msgstr "Boli ste úspešne odhlásení z administrácie"
+
+msgid "and"
+msgstr "a"

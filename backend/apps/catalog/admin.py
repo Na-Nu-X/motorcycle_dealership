@@ -11,6 +11,8 @@ from unfold.contrib.filters.admin import (
 from unfold.contrib.forms.widgets import WysiwygWidget
 from unfold.decorators import action, display
 
+from apps.core.admin_mixins import thumbnail_html
+
 from .models import Brand, Motorcycle, MotorcycleImage
 
 
@@ -43,11 +45,11 @@ class MotorcycleImageInline(TabularInline):
 @admin.register(Motorcycle)
 class MotorcycleAdmin(ModelAdmin):
     list_display = [
-        "thumbnail", "display_title", "year", "category_label", "engine_cc", "price_display",
-        "stock_label", "available", "featured", "new_arrival", "used",
+        "thumbnail", "display_title", "category_label", "engine_cc", "price_display",
+        "stock_label", "available", "featured",
     ]
     list_display_links = ["thumbnail", "display_title"]
-    list_editable = ["available", "featured", "new_arrival"]
+    list_editable = ["available", "featured"]
     list_filter = [
         ("brand", RelatedCheckboxFilter),
         ("category", ChoicesCheckboxFilter),
@@ -89,14 +91,15 @@ class MotorcycleAdmin(ModelAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).select_related("brand").prefetch_related("images")
 
-    @display(description="", image=True)
+    @display(description="")
     def thumbnail(self, obj):
         cover = obj.images.all()[:1]
-        return cover[0].image.url if cover else None
+        return thumbnail_html(cover[0].image.url if cover else None)
 
     @display(description=_("Motocykel"), ordering="model", header=True)
     def display_title(self, obj):
-        return [obj.title, obj.slug]
+        flags = [str(label) for flag, label in ((obj.used, _("jazdený")), (obj.new_arrival, _("novinka"))) if flag]
+        return [obj.title, " · ".join([str(obj.year), *flags])]
 
     @display(description=_("Kategória"), ordering="category", label=True)
     def category_label(self, obj):
@@ -104,7 +107,7 @@ class MotorcycleAdmin(ModelAdmin):
 
     @display(description=_("Cena"), ordering="price")
     def price_display(self, obj):
-        return f"{obj.price:,.0f} €".replace(",", " ")
+        return f"{obj.price:,.0f}\u00a0€".replace(",", "\u00a0")
 
     @display(
         description=_("Sklad"), ordering="stock_status",

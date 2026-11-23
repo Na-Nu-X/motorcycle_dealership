@@ -117,6 +117,25 @@ ACCESSORIES = [
 PALETTES = [((20, 20, 22), (58, 60, 66)), ((15, 15, 16), (90, 22, 20)), ((25, 25, 28), (60, 66, 74))]
 
 
+FONT_CANDIDATES = [
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans{}.ttf",
+    "/usr/share/fonts/TTF/DejaVuSans{}.ttf",
+    "/Library/Fonts/Arial{}.ttf",
+    "C:/Windows/Fonts/arial{}.ttf",
+]
+
+
+def _font(size: int, bold: bool = True):
+    """A TrueType font with full Latin-Extended coverage (Slovak diacritics), if available."""
+    for pattern in FONT_CANDIDATES:
+        for suffix in (("-Bold", " Bold", "bd") if bold else ("",)):
+            try:
+                return ImageFont.truetype(pattern.format(suffix), size)
+            except OSError:
+                continue
+    return ImageFont.load_default(size=size)
+
+
 def render_placeholder(title: str, subtitle: str, variant: int = 0, size=(1600, 1000)) -> bytes:
     """Draw an industrial-styled placeholder photo."""
     w, h = size
@@ -150,10 +169,10 @@ def render_placeholder(title: str, subtitle: str, variant: int = 0, size=(1600, 
     draw.polygon([pt(0.28, 0.40), pt(0.47, 0.37), pt(0.47, 0.41), pt(0.30, 0.44)], fill=(30, 30, 32))      # seat
     draw.line([pt(0.60, 0.29), pt(0.66, 0.26)], fill=steel, width=12)            # handlebar
     draw.line([pt(0.44, 0.60), pt(0.24, 0.55)], fill=(150, 150, 155), width=14)  # exhaust
-    font_big = ImageFont.load_default(size=88)
-    font_small = ImageFont.load_default(size=44)
-    draw.text((80, 70), title.upper(), fill=(245, 245, 245), font=font_big)
-    draw.text((84, 180), subtitle, fill=(190, 190, 195), font=font_small)
+    scale = w / 1600
+    font_big, font_small = _font(int(76 * scale)), _font(int(40 * scale), bold=False)
+    draw.text((70 * scale, h - 190 * scale), title.upper(), fill=(245, 245, 245), font=font_big)
+    draw.text((72 * scale, h - 95 * scale), subtitle, fill=(190, 190, 195), font=font_small)
     buf = io.BytesIO()
     img.save(buf, "JPEG", quality=82, optimize=True)
     return buf.getvalue()

@@ -64,7 +64,6 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -107,12 +106,15 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Localisation — Slovak first.
+# The admin is always Slovak (no Accept-Language negotiation).
 LANGUAGE_CODE = "sk"
-LANGUAGES = [("sk", "Slovenčina"), ("en", "English")]
+LANGUAGES = [("sk", "Slovenčina")]
 TIME_ZONE = os.getenv("DJANGO_TIME_ZONE", "Europe/Bratislava")
 USE_I18N = True
 USE_TZ = True
 LOCALE_PATHS = [BASE_DIR / "locale"]
+
+LOGIN_REDIRECT_URL = "admin:index"
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"

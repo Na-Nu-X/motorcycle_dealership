@@ -4,7 +4,7 @@ from unfold.admin import ModelAdmin, TabularInline
 from unfold.contrib.filters.admin import ChoicesCheckboxFilter, RangeDateFilter, RangeNumericFilter
 from unfold.decorators import display
 
-from apps.core.admin_mixins import StatusActionsMixin, make_status_action
+from apps.core.admin_mixins import StatusActionsMixin, make_status_action, thumbnail_html
 
 from .models import Accessory, Order, OrderItem
 
@@ -24,9 +24,9 @@ class AccessoryAdmin(ModelAdmin):
         (_("Cena a sklad"), {"fields": [("price", "previous_price"), "stock", ("sizes", "colors"), ("active", "featured")]}),
     ]
 
-    @display(description="", image=True)
+    @display(description="")
     def thumbnail(self, obj):
-        return obj.image.url if obj.image else None
+        return thumbnail_html(obj.image.url if obj.image else None)
 
     @display(description=_("Kategória"), ordering="category", label=True)
     def category_label(self, obj):

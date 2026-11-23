@@ -48,3 +48,9 @@ class AdminSmokeTests(TestCase):
         url = reverse("admin:catalog_motorcycle_changelist")
         response = self.client.get(url, {"category": "sport", "price_from": "5000", "price_to": "30000"})
         self.assertEqual(response.status_code, 200)
+
+    def test_admin_is_slovak_regardless_of_browser_language(self):
+        response = self.client.get(reverse("admin:catalog_motorcycle_changelist"), HTTP_ACCEPT_LANGUAGE="en-US")
+        self.assertContains(response, "Filtre")
+        self.assertContains(response, "Hľadať aplikácie a modely")
+        self.assertNotContains(response, "Type to search")

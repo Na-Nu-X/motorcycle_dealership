@@ -16,7 +16,7 @@ import { Icon } from './icon';
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `
     :host { display: block; }
-    .map { position: relative; aspect-ratio: 4 / 3; min-height: 280px; border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden; background:
+    .map { position: relative; width: 100%; height: clamp(320px, 70vw, 460px); border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden; background:
       repeating-linear-gradient(45deg, var(--color-surface) 0 14px, var(--color-surface-2) 14px 28px); }
     iframe { width: 100%; height: 100%; border: 0; filter: grayscale(0.2) contrast(1.05); }
     .consent { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-3);
