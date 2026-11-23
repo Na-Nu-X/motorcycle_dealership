@@ -1,0 +1,175 @@
+<section class="page-hero">
+  <div class="container">
+    <span class="eyebrow">Vyskúšajte skôr, než sa rozhodnete</span>
+    <h1>Testovacia jazda</h1>
+    <p class="lead">Rezervácia trvá dve minúty. Prineste si vodičský preukaz a vlastnú prilbu – ak ju nemáte, radi vám ju zapožičiame.</p>
+  </div>
+</section>
+
+<div class="container section--tight">
+  @if (done()) {
+    <div class="panel wizard__done" role="status">
+      <app-icon name="check" class="wizard__ok" />
+      <h2>Testovacia jazda je rezervovaná</h2>
+      @if (selectedBike(); as b) {
+        <p class="lead">
+          {{ b.brand }} {{ b.model }} – {{ model().preferred_date | dateSk }} o <span class="num">{{ model().preferred_time }}</span>.
+        </p>
+      }
+      <p class="muted">Termín vám potvrdíme e-mailom na {{ model().email }}. Nezabudnite si vodičský preukaz.</p>
+      <div class="form-actions" style="justify-content: center">
+        <a routerLink="/motocykle" class="btn btn--primary">Späť na ponuku</a>
+      </div>
+    </div>
+  } @else {
+    <ol class="progress" aria-label="Kroky rezervácie">
+      @for (s of steps; track s; let i = $index) {
+        <li [class.is-done]="i < step()" [class.is-current]="i === step()" [attr.aria-current]="i === step() ? 'step' : null">
+          @if (i < step()) {
+            <button type="button" (click)="goTo(i)"><span class="progress__n">{{ i + 1 }}</span> {{ s }}</button>
+          } @else {
+            <span><span class="progress__n">{{ i + 1 }}</span> {{ s }}</span>
+          }
+        </li>
+      }
+    </ol>
+
+    <form class="wizard" (submit)="send($event)" novalidate>
+      <div class="panel">
+        <h2 id="wizard-step" tabindex="-1" class="wizard__title">{{ step() + 1 }}. {{ steps[step()] }}</h2>
+
+        @switch (step()) {
+          @case (0) {
+            <div class="field wizard__search">
+              <label for="tr-search">Hľadať motocykel</label>
+              <input id="tr-search" class="input" type="search" placeholder="Značka alebo model" [value]="query()" (input)="query.set($any($event.target).value)" />
+            </div>
+            @if (!bikesRes.hasValue()) {
+              <div class="skeleton" style="height: 240px" aria-hidden="true"></div>
+            } @else {
+              <fieldset class="bike-pick" aria-describedby="tr-bike-err">
+                <legend class="visually-hidden">Vyberte motocykel</legend>
+                @for (b of filteredBikes(); track b.slug) {
+                  <label class="bike-pick__item">
+                    <input type="radio" name="motorcycle" [value]="b.slug" [checked]="model().motorcycle === b.slug" (change)="selectBike(b.slug)" />
+                    @if (b.image) { <img [src]="b.image" alt="" width="160" height="100" loading="lazy" /> }
+                    <span class="bike-pick__text">
+                      <strong>{{ b.brand }} {{ b.model }}</strong>
+                      <span class="muted num">{{ b.year }} · {{ b.engine_cc | num }} cm³ · {{ b.price | price }}</span>
+                      <span class="badge badge--outline">Oprávnenie {{ b.license_category }}</span>
+                    </span>
+                  </label>
+                } @empty {
+                  <p class="muted">Žiadny motocykel nezodpovedá hľadaniu.</p>
+                }
+              </fieldset>
+            }
+            <app-field-error [field]="f.motorcycle" id="tr-bike-err" />
+          }
+          @case (1) {
+            @if (selectedBike(); as b) {
+              <p class="muted">Motocykel: <strong>{{ b.brand }} {{ b.model }}</strong></p>
+            }
+            <div class="field">
+              <label for="tr-date">Dátum <span class="req" aria-hidden="true">*</span></label>
+              <input id="tr-date" class="input" type="date" [min]="bounds.min" [max]="bounds.max" [formField]="f.preferred_date" (change)="f.preferred_time().value.set('')" [attr.aria-invalid]="showInvalid(f.preferred_date)" aria-describedby="tr-date-err" />
+              <app-field-error [field]="f.preferred_date" id="tr-date-err" />
+            </div>
+            <div class="field" style="margin-top: var(--space-4)">
+              <span class="label" id="tr-time-label">Čas <span class="req" aria-hidden="true">*</span></span>
+              <app-slot-picker labelId="tr-time-label" describedBy="tr-time-err" [slots]="slots()" [loading]="availability.isLoading()"
+                [value]="f.preferred_time().value()" (valueChange)="f.preferred_time().value.set($event); f.preferred_time().markAsTouched()" />
+              <app-field-error [field]="f.preferred_time" id="tr-time-err" />
+            </div>
+          }
+          @case (2) {
+            <fieldset class="field" style="border: 0; padding: 0; margin: 0" aria-describedby="tr-lic-err">
+              <legend class="label">Skupina vodičského oprávnenia <span class="req" aria-hidden="true">*</span></legend>
+              <div class="radio-cards">
+                @for (l of licenses; track l) {
+                  <label>
+                    <input type="radio" name="license" [value]="l" [checked]="model().license_category === l" (change)="f.license_category().value.set(l); f.license_category().markAsTouched()" />
+                    <strong>{{ l }}</strong>
+                    <span class="muted">{{ l === 'A1' ? 'do 125 cm³' : l === 'A2' ? 'do 35 kW' : 'bez obmedzenia' }}</span>
+                  </label>
+                }
+              </div>
+              <app-field-error [field]="f.license_category" id="tr-lic-err" />
+            </fieldset>
+            <div class="field" style="margin-top: var(--space-5); max-width: 260px">
+              <label for="tr-exp">Roky jazdných skúseností</label>
+              <input id="tr-exp" class="input num" type="number" inputmode="numeric" [formField]="f.riding_experience_years" [attr.aria-invalid]="showInvalid(f.riding_experience_years)" aria-describedby="tr-exp-err" />
+              <app-field-error [field]="f.riding_experience_years" id="tr-exp-err" />
+            </div>
+            <div class="field" style="margin-top: var(--space-5)">
+              <label class="check">
+                <input type="checkbox" [formField]="f.license_confirmed" aria-describedby="tr-conf-err" />
+                <span>Potvrdzujem, že vlastním <strong>platný vodičský preukaz</strong> zvolenej skupiny a predložím ho pred jazdou. <span class="req" aria-hidden="true">*</span></span>
+              </label>
+              <app-field-error [field]="f.license_confirmed" id="tr-conf-err" />
+            </div>
+          }
+          @case (3) {
+            <div class="form-grid">
+              <div class="field">
+                <label for="tr-first">Meno <span class="req" aria-hidden="true">*</span></label>
+                <input id="tr-first" class="input" autocomplete="given-name" [formField]="f.first_name" [attr.aria-invalid]="showInvalid(f.first_name)" aria-describedby="tr-first-err" />
+                <app-field-error [field]="f.first_name" id="tr-first-err" />
+              </div>
+              <div class="field">
+                <label for="tr-last">Priezvisko <span class="req" aria-hidden="true">*</span></label>
+                <input id="tr-last" class="input" autocomplete="family-name" [formField]="f.last_name" [attr.aria-invalid]="showInvalid(f.last_name)" aria-describedby="tr-last-err" />
+                <app-field-error [field]="f.last_name" id="tr-last-err" />
+              </div>
+              <div class="field">
+                <label for="tr-email">E-mail <span class="req" aria-hidden="true">*</span></label>
+                <input id="tr-email" class="input" type="email" autocomplete="email" [formField]="f.email" [attr.aria-invalid]="showInvalid(f.email)" aria-describedby="tr-email-err" />
+                <app-field-error [field]="f.email" id="tr-email-err" />
+              </div>
+              <div class="field">
+                <label for="tr-phone">Telefón <span class="req" aria-hidden="true">*</span></label>
+                <input id="tr-phone" class="input" type="tel" autocomplete="tel" [formField]="f.phone" [attr.aria-invalid]="showInvalid(f.phone)" aria-describedby="tr-phone-err" />
+                <app-field-error [field]="f.phone" id="tr-phone-err" />
+              </div>
+              <div class="field span-2">
+                <label for="tr-note">Poznámka</label>
+                <textarea id="tr-note" class="textarea" [formField]="f.note" aria-describedby="tr-note-err"></textarea>
+                <app-field-error [field]="f.note" id="tr-note-err" />
+              </div>
+            </div>
+
+            <div class="summary-box">
+              <h3>Zhrnutie</h3>
+              <dl>
+                <div><dt>Motocykel</dt><dd>{{ selectedBike()?.brand }} {{ selectedBike()?.model }}</dd></div>
+                <div><dt>Termín</dt><dd>{{ model().preferred_date | dateSk }}, <span class="num">{{ model().preferred_time }}</span></dd></div>
+                <div><dt>Oprávnenie</dt><dd>{{ model().license_category }}</dd></div>
+              </dl>
+            </div>
+
+            <div class="field" style="margin-top: var(--space-4)">
+              <label class="check">
+                <input type="checkbox" [formField]="f.gdpr_consent" aria-describedby="tr-gdpr-err" />
+                <span>Súhlasím so <a routerLink="/ochrana-osobnych-udajov">spracovaním osobných údajov</a>. <span class="req" aria-hidden="true">*</span></span>
+              </label>
+              <app-field-error [field]="f.gdpr_consent" id="tr-gdpr-err" />
+            </div>
+            <app-honeypot [field]="f.website" />
+            <app-form-alert [messages]="rootErrors(f)" />
+          }
+        }
+
+        <div class="form-actions wizard__nav">
+          @if (step() > 0) {
+            <button type="button" class="btn btn--ghost" (click)="goTo(step() - 1)"><app-icon name="arrow-left" /> Späť</button>
+          }
+          @if (step() < steps.length - 1) {
+            <button type="submit" class="btn btn--primary">Pokračovať <app-icon name="arrow" /></button>
+          } @else {
+            <button type="submit" class="btn btn--primary" [disabled]="f().submitting()">{{ f().submitting() ? 'Odosielam…' : 'Rezervovať jazdu' }}</button>
+          }
+        </div>
+      </div>
+    </form>
+  }
+</div>

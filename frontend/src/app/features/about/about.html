@@ -1,0 +1,51 @@
+<section class="page-hero">
+  <div class="container">
+    <span class="eyebrow">O nás</span>
+    <h1>Motorky sú naša vášeň</h1>
+    <p class="lead">{{ config.name }} je rodinná predajňa a servis motocyklov. Už {{ years | plural: { one: 'rok', few: 'roky', many: 'rokov' } }} pomáhame jazdcom nájsť stroj, ktorý im sedí – a postaráme sa oň aj po kúpe.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container story">
+    <div>
+      <h2>Od garáže po showroom</h2>
+      <p class="muted">Začínali sme v roku {{ config.foundedYear }} v malej dielni s dvomi zdvihákmi. Dnes máme showroom s viac ako 30 motocyklami, moderný servis so šiestimi technikmi a obchod s výbavou od svetových značiek.</p>
+      <p class="muted">Nepredávame len motorky – jazdíme na nich. Každý z nás má za sebou desaťtisíce kilometrov po Európe, okruhové dni aj terénne výlety. Preto vám poradíme úprimne a z vlastnej skúsenosti.</p>
+      <div class="form-actions">
+        <a routerLink="/motocykle" class="btn btn--primary">Pozrieť ponuku</a>
+        <a routerLink="/kontakt" class="btn btn--ghost">Navštívte nás</a>
+      </div>
+    </div>
+    <dl class="stats num">
+      <div><dt>rokov na trhu</dt><dd>{{ years }}+</dd></div>
+      <div><dt>predaných motocyklov</dt><dd>2 400+</dd></div>
+      <div><dt>servisných zákaziek ročne</dt><dd>3 100</dd></div>
+      <div><dt>spokojnosť zákazníkov</dt><dd>4,9/5</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section class="section section--alt">
+  <div class="container">
+    <h2>Na čom nám záleží</h2>
+    <ul class="values">
+      <li><app-icon name="shield" /><h3>Poctivosť</h3><p>Pri jazdených motocykloch uvádzame skutočný stav, servisnú históriu a výsledok vstupnej kontroly.</p></li>
+      <li><app-icon name="wrench" /><h3>Odbornosť</h3><p>Naši technici sú pravidelne školení výrobcami a pracujú s originálnou diagnostikou.</p></li>
+      <li><app-icon name="speed" /><h3>Skúsenosti</h3><p>Každý motocykel v ponuke sme sami jazdili. Pred kúpou si ho môžete vyskúšať aj vy.</p></li>
+      <li><app-icon name="star" /><h3>Starostlivosť</h3><p>Po kúpe nekončíme – pripomenieme servis, pomôžeme s príslušenstvom aj s predajom na protiúčet.</p></li>
+    </ul>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2>Míľniky</h2>
+    <ol class="timeline">
+      <li><strong>{{ config.foundedYear }}</strong><span>Otvárame dielňu zameranú na servis japonských motocyklov.</span></li>
+      <li><strong>2014</strong><span>Prvý showroom a autorizácia na predaj nových motocyklov.</span></li>
+      <li><strong>2019</strong><span>Nová budova s modernou servisnou halou a obchodom s výbavou.</span></li>
+      <li><strong>2024</strong><span>Rozšírenie ponuky o prémiové európske a americké značky.</span></li>
+    </ol>
+  </div>
+</section>

@@ -1,0 +1,92 @@
+<section class="page-hero">
+  <div class="container">
+    <span class="eyebrow">Sme tu pre vás</span>
+    <h1>Kontakt</h1>
+    <p class="lead">Navštívte našu predajňu a servis, zavolajte alebo napíšte. Odpovedáme do 24 hodín v pracovných dňoch.</p>
+  </div>
+</section>
+
+<div class="container contact">
+  <div>
+    <ul class="cards">
+      <li>
+        <app-icon name="pin" />
+        <strong>Adresa</strong>
+        <p>{{ config.legalName }}<br />{{ config.contact.street }}<br />{{ config.contact.postalCode }} {{ config.contact.city }}</p>
+      </li>
+      <li>
+        <app-icon name="phone" />
+        <strong>Predajňa</strong>
+        <p><a [href]="config.contact.phoneHref">{{ config.contact.phone }}</a><br /><a [href]="'mailto:' + config.contact.email">{{ config.contact.email }}</a></p>
+      </li>
+      <li>
+        <app-icon name="wrench" />
+        <strong>Servis</strong>
+        <p><a [href]="config.contact.servicePhoneHref">{{ config.contact.servicePhone }}</a><br /><a [href]="'mailto:' + config.contact.serviceEmail">{{ config.contact.serviceEmail }}</a></p>
+      </li>
+      <li>
+        <app-icon name="clock" />
+        <strong>Otváracie hodiny</strong>
+        <dl class="hours">
+          @for (row of config.openingHours; track row.days) {
+            <div><dt>{{ row.days }}</dt><dd class="num">{{ row.hours }}</dd></div>
+          }
+        </dl>
+      </li>
+    </ul>
+    <app-osm-map [label]="config.name + ' – ' + config.contact.street + ', ' + config.contact.city" />
+    <p class="muted" style="font-size: var(--fs-sm); margin-top: var(--space-4)">{{ config.companyId }} · {{ config.vatId }}</p>
+  </div>
+
+  <section class="panel" aria-labelledby="contact-form-title">
+    <h2 id="contact-form-title">Napíšte nám</h2>
+    @if (sent()) {
+      <div class="alert alert--success" role="status">
+        <p><strong>Ďakujeme, správu sme prijali.</strong> Ozveme sa vám čo najskôr.</p>
+        <button type="button" class="btn btn--sm btn--ghost" (click)="sent.set(false)">Napísať ďalšiu správu</button>
+      </div>
+    } @else {
+      <form (submit)="send($event)" novalidate aria-labelledby="contact-form-title">
+        <div class="form-grid">
+          <div class="field">
+            <label for="ct-name">Meno a priezvisko <span class="req" aria-hidden="true">*</span></label>
+            <input id="ct-name" class="input" autocomplete="name" [formField]="f.name" [attr.aria-invalid]="showInvalid(f.name)" aria-describedby="ct-name-err" />
+            <app-field-error [field]="f.name" id="ct-name-err" />
+          </div>
+          <div class="field">
+            <label for="ct-email">E-mail <span class="req" aria-hidden="true">*</span></label>
+            <input id="ct-email" class="input" type="email" autocomplete="email" [formField]="f.email" [attr.aria-invalid]="showInvalid(f.email)" aria-describedby="ct-email-err" />
+            <app-field-error [field]="f.email" id="ct-email-err" />
+          </div>
+          <div class="field">
+            <label for="ct-phone">Telefón</label>
+            <input id="ct-phone" class="input" type="tel" autocomplete="tel" [formField]="f.phone" [attr.aria-invalid]="showInvalid(f.phone)" aria-describedby="ct-phone-err" />
+            <app-field-error [field]="f.phone" id="ct-phone-err" />
+          </div>
+          <div class="field">
+            <label for="ct-subject">Predmet <span class="req" aria-hidden="true">*</span></label>
+            <input id="ct-subject" class="input" [formField]="f.subject" [attr.aria-invalid]="showInvalid(f.subject)" aria-describedby="ct-subject-err" />
+            <app-field-error [field]="f.subject" id="ct-subject-err" />
+          </div>
+          <div class="field span-2">
+            <label for="ct-message">Správa <span class="req" aria-hidden="true">*</span></label>
+            <textarea id="ct-message" class="textarea" rows="6" [formField]="f.message" [attr.aria-invalid]="showInvalid(f.message)" aria-describedby="ct-message-err"></textarea>
+            <app-field-error [field]="f.message" id="ct-message-err" />
+          </div>
+          <div class="field span-2">
+            <label class="check">
+              <input type="checkbox" [formField]="f.gdpr_consent" aria-describedby="ct-gdpr-err" />
+              <span>Súhlasím so <a routerLink="/ochrana-osobnych-udajov">spracovaním osobných údajov</a> za účelom odpovede na moju správu. <span class="req" aria-hidden="true">*</span></span>
+            </label>
+            <app-field-error [field]="f.gdpr_consent" id="ct-gdpr-err" />
+          </div>
+        </div>
+        <app-honeypot [field]="f.website" />
+        <app-form-alert [messages]="rootErrors(f)" />
+        <div class="form-actions">
+          <button type="submit" class="btn btn--primary" [disabled]="f().submitting()">{{ f().submitting() ? 'Odosielam…' : 'Odoslať správu' }}</button>
+        </div>
+      </form>
+    }
+  </section>
+</div>

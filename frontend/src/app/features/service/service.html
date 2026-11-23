@@ -1,0 +1,172 @@
+<section class="page-hero">
+  <div class="container">
+    <span class="eyebrow">Servis a údržba</span>
+    <h1>Servis, ktorému môžete veriť</h1>
+    <p class="lead">Certifikovaní technici, originálne diely a diagnostika pre všetky značky v našej ponuke. Termín si rezervujete online – potvrdíme ho do 2 hodín v pracovnom čase.</p>
+    <div class="form-actions">
+      <a href="#rezervacia" class="btn btn--primary">Rezervovať termín</a>
+      <a [href]="config.contact.servicePhoneHref" class="btn btn--ghost"><app-icon name="phone" /> {{ config.contact.servicePhone }}</a>
+    </div>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="svc-title">
+  <div class="container">
+    <h2 id="svc-title">Čo robíme</h2>
+    <ul class="svc">
+      @for (s of services; track s.value) {
+        <li class="svc__item">
+          <app-icon [name]="s.icon" />
+          <h3>{{ s.label }}</h3>
+          <p class="muted">{{ s.text }}</p>
+          <p class="svc__price num">{{ s.price }}</p>
+          <button type="button" class="btn btn--ghost btn--sm" (click)="chooseService(s.value)">Vybrať</button>
+        </li>
+      }
+    </ul>
+  </div>
+</section>
+
+<section id="rezervacia" class="section section--alt" aria-labelledby="booking-title">
+  <div class="container booking">
+    <div class="booking__info">
+      <span class="eyebrow">Online rezervácia</span>
+      <h2 id="booking-title">Objednajte sa do servisu</h2>
+      <ol class="steps">
+        <li><strong>Vyberte servis a termín</strong><span>Vidíte len voľné časy.</span></li>
+        <li><strong>Potvrdíme rezerváciu</strong><span>Telefonicky alebo e-mailom do 2 hodín.</span></li>
+        <li><strong>Pristavte motocykel</strong><span>Po servise vás upozorníme SMS správou.</span></li>
+      </ol>
+      <div class="panel">
+        <h3>Otváracie hodiny servisu</h3>
+        <dl class="hours">
+          @for (row of config.openingHours; track row.days) {
+            <div><dt>{{ row.days }}</dt><dd class="num">{{ row.hours }}</dd></div>
+          }
+        </dl>
+      </div>
+    </div>
+
+    <div class="panel">
+      @if (done(); as d) {
+        <div role="status" class="booking__done">
+          <app-icon name="check" class="booking__ok" />
+          <h3>Rezervácia odoslaná</h3>
+          <p>
+            {{ serviceLabel(d.service_type) }} pre <strong>{{ d.motorcycle_model }}</strong>
+            – {{ d.preferred_date | dateSk }} o <span class="num">{{ d.preferred_time }}</span>.
+          </p>
+          <p class="muted">Termín vám potvrdíme na {{ d.email }}. Ďakujeme!</p>
+          <button type="button" class="btn btn--ghost" (click)="done.set(null)">Nová rezervácia</button>
+        </div>
+      } @else {
+        <form (submit)="send($event)" novalidate aria-labelledby="booking-title">
+          <fieldset class="booking__group">
+            <legend>1. Typ servisu</legend>
+            <div class="radio-cards" role="radiogroup" aria-describedby="sb-type-err">
+              @for (s of services; track s.value) {
+                <label>
+                  <input type="radio" name="service_type" [value]="s.value" [checked]="f.service_type().value() === s.value" (change)="f.service_type().value.set(s.value)" (blur)="f.service_type().markAsTouched()" />
+                  <strong>{{ s.label }}</strong>
+                  <span class="muted num">{{ s.price }}</span>
+                </label>
+              }
+            </div>
+            <app-field-error [field]="f.service_type" id="sb-type-err" />
+          </fieldset>
+
+          <fieldset class="booking__group">
+            <legend>2. Váš motocykel</legend>
+            <div class="form-grid">
+              <div class="field span-2">
+                <label for="sb-model">Značka a model <span class="req" aria-hidden="true">*</span></label>
+                <input id="sb-model" class="input" placeholder="napr. Honda CB650R" [formField]="f.motorcycle_model" [attr.aria-invalid]="showInvalid(f.motorcycle_model)" aria-describedby="sb-model-err" />
+                <app-field-error [field]="f.motorcycle_model" id="sb-model-err" />
+              </div>
+              <div class="field">
+                <label for="sb-year">Rok výroby</label>
+                <input id="sb-year" class="input num" type="number" inputmode="numeric" [formField]="f.motorcycle_year" [attr.aria-invalid]="showInvalid(f.motorcycle_year)" aria-describedby="sb-year-err" />
+                <app-field-error [field]="f.motorcycle_year" id="sb-year-err" />
+              </div>
+              <div class="field">
+                <label for="sb-km">Stav tachometra (km)</label>
+                <input id="sb-km" class="input num" type="number" inputmode="numeric" [formField]="f.mileage_km" [attr.aria-invalid]="showInvalid(f.mileage_km)" aria-describedby="sb-km-err" />
+                <app-field-error [field]="f.mileage_km" id="sb-km-err" />
+              </div>
+              <div class="field">
+                <label for="sb-plate">EČV</label>
+                <input id="sb-plate" class="input" autocapitalize="characters" placeholder="BA123XY" [formField]="f.license_plate" aria-describedby="sb-plate-err" />
+                <app-field-error [field]="f.license_plate" id="sb-plate-err" />
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="booking__group">
+            <legend>3. Termín</legend>
+            <div class="field">
+              <label for="sb-date">Dátum <span class="req" aria-hidden="true">*</span></label>
+              <input id="sb-date" class="input" type="date" [min]="bounds.min" [max]="bounds.max" [formField]="f.preferred_date" (change)="dateChanged()" [attr.aria-invalid]="showInvalid(f.preferred_date)" aria-describedby="sb-date-err sb-date-hint" />
+              <span class="hint" id="sb-date-hint">Po – Pi 8:00 – 17:00, So 8:00 – 12:00</span>
+              <app-field-error [field]="f.preferred_date" id="sb-date-err" />
+            </div>
+            <div class="field" style="margin-top: var(--space-4)">
+              <span class="label" id="sb-time-label">Čas <span class="req" aria-hidden="true">*</span></span>
+              <app-slot-picker
+                labelId="sb-time-label"
+                describedBy="sb-time-err"
+                [slots]="slots()"
+                [loading]="availability.isLoading()"
+                [value]="f.preferred_time().value()"
+                (valueChange)="f.preferred_time().value.set($event); f.preferred_time().markAsTouched()"
+              />
+              <app-field-error [field]="f.preferred_time" id="sb-time-err" />
+            </div>
+          </fieldset>
+
+          <fieldset class="booking__group">
+            <legend>4. Kontakt</legend>
+            <div class="form-grid">
+              <div class="field">
+                <label for="sb-first">Meno <span class="req" aria-hidden="true">*</span></label>
+                <input id="sb-first" class="input" autocomplete="given-name" [formField]="f.first_name" [attr.aria-invalid]="showInvalid(f.first_name)" aria-describedby="sb-first-err" />
+                <app-field-error [field]="f.first_name" id="sb-first-err" />
+              </div>
+              <div class="field">
+                <label for="sb-last">Priezvisko <span class="req" aria-hidden="true">*</span></label>
+                <input id="sb-last" class="input" autocomplete="family-name" [formField]="f.last_name" [attr.aria-invalid]="showInvalid(f.last_name)" aria-describedby="sb-last-err" />
+                <app-field-error [field]="f.last_name" id="sb-last-err" />
+              </div>
+              <div class="field">
+                <label for="sb-email">E-mail <span class="req" aria-hidden="true">*</span></label>
+                <input id="sb-email" class="input" type="email" autocomplete="email" [formField]="f.email" [attr.aria-invalid]="showInvalid(f.email)" aria-describedby="sb-email-err" />
+                <app-field-error [field]="f.email" id="sb-email-err" />
+              </div>
+              <div class="field">
+                <label for="sb-phone">Telefón <span class="req" aria-hidden="true">*</span></label>
+                <input id="sb-phone" class="input" type="tel" autocomplete="tel" [formField]="f.phone" [attr.aria-invalid]="showInvalid(f.phone)" aria-describedby="sb-phone-err" />
+                <app-field-error [field]="f.phone" id="sb-phone-err" />
+              </div>
+              <div class="field span-2">
+                <label for="sb-note">Popis problému / poznámka</label>
+                <textarea id="sb-note" class="textarea" [formField]="f.note" placeholder="Napr. zvuk pri brzdení, požiadavka na náhradný motocykel…" aria-describedby="sb-note-err"></textarea>
+                <app-field-error [field]="f.note" id="sb-note-err" />
+              </div>
+              <div class="field span-2">
+                <label class="check">
+                  <input type="checkbox" [formField]="f.gdpr_consent" aria-describedby="sb-gdpr-err" />
+                  <span>Súhlasím so <a routerLink="/ochrana-osobnych-udajov">spracovaním osobných údajov</a>. <span class="req" aria-hidden="true">*</span></span>
+                </label>
+                <app-field-error [field]="f.gdpr_consent" id="sb-gdpr-err" />
+              </div>
+            </div>
+          </fieldset>
+          <app-honeypot [field]="f.website" />
+          <app-form-alert [messages]="rootErrors(f)" />
+          <div class="form-actions">
+            <button type="submit" class="btn btn--primary" [disabled]="f().submitting()">{{ f().submitting() ? 'Odosielam…' : 'Odoslať rezerváciu' }}</button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+</section>
