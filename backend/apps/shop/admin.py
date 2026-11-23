@@ -46,17 +46,19 @@ class OrderItemInline(TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(StatusActionsMixin, ModelAdmin):
-    list_display = ["number", "customer", "delivery_method", "total", "status_label", "created_at"]
+    list_display = ["number", "customer", "delivery_method", "total", "bikes_count", "status_label", "created_at"]
     list_filter = [("status", ChoicesCheckboxFilter), "delivery_method", ("created_at", RangeDateFilter)]
     list_filter_submit = True
     search_fields = ["number", "first_name", "last_name", "email", "phone"]
     readonly_fields = ["number", "total", "created_at", "updated_at", "gdpr_consent"]
     inlines = [OrderItemInline]
+    autocomplete_fields = ["reserved_motorcycles"]
     date_hierarchy = "created_at"
     actions = [make_status_action(s, s.label) for s in (Order.Status.CONFIRMED, Order.Status.READY,
                                                           Order.Status.COMPLETED, Order.Status.CANCELLED)]
     fieldsets = [
         (_("Objednávka"), {"fields": [("number", "status"), ("total", "shipping_price"), "delivery_method", "note"]}),
+        (_("Rezervácie motocyklov"), {"fields": ["reserved_motorcycles"]}),
         (_("Zákazník"), {"fields": [("first_name", "last_name"), ("email", "phone"), ("street", "city", "postal_code"),
                                      "gdpr_consent"]}),
         (_("Interné"), {"fields": ["internal_note", ("created_at", "updated_at")]}),
@@ -72,6 +74,10 @@ class OrderAdmin(StatusActionsMixin, ModelAdmin):
     })
     def status_label(self, obj):
         return obj.get_status_display()
+
+    @display(description=_("Motocykle"))
+    def bikes_count(self, obj):
+        return obj.reserved_motorcycles.count() or "—"
 
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)

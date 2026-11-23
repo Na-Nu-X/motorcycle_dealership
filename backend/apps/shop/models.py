@@ -94,6 +94,11 @@ class Order(CustomerContactModel):
     note = models.TextField(_("poznámka zákazníka"), blank=True)
     shipping_price = models.DecimalField(_("doprava (EUR)"), max_digits=8, decimal_places=2, default=Decimal("0"))
     total = models.DecimalField(_("spolu (EUR)"), max_digits=10, decimal_places=2, default=Decimal("0"))
+    reserved_motorcycles = models.ManyToManyField(
+        "catalog.Motorcycle", blank=True, related_name="reservation_orders",
+        verbose_name=_("rezervované motocykle"),
+        help_text=_("Žiadosti o rezerváciu motocyklov z košíka – cena sa dohaduje individuálne."),
+    )
 
     class Meta:
         ordering = ["-created_at"]

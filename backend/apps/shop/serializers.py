@@ -4,6 +4,7 @@ from django.db import transaction
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
+from apps.catalog.models import Motorcycle
 from apps.core.serializers import GdprConsentMixin, HoneypotSerializerMixin
 
 from .models import Accessory, Order, OrderItem
@@ -11,6 +12,7 @@ from .models import Accessory, Order, OrderItem
 COURIER_PRICE = Decimal("6.90")
 FREE_SHIPPING_FROM = Decimal("150.00")
 MAX_QUANTITY_PER_LINE = 20
+MAX_RESERVED_MOTORCYCLES = 3
 
 
 class AccessorySerializer(serializers.ModelSerializer):
@@ -48,24 +50,41 @@ class OrderItemInputSerializer(serializers.Serializer):
 
 
 class OrderCreateSerializer(HoneypotSerializerMixin, GdprConsentMixin, serializers.ModelSerializer):
-    items = OrderItemInputSerializer(many=True, write_only=True)
+    items = OrderItemInputSerializer(many=True, write_only=True, required=False)
+    motorcycles = serializers.SlugRelatedField(
+        slug_field="slug", many=True, required=False, write_only=True,
+        queryset=Motorcycle.objects.filter(available=True),
+    )
 
     class Meta:
         model = Order
         fields = [
             "first_name", "last_name", "email", "phone", "delivery_method", "street", "city", "postal_code",
-            "note", "gdpr_consent", "items", "website",
+            "note", "gdpr_consent", "items", "motorcycles", "website",
         ]
 
     def validate_items(self, items):
-        if not items:
-            raise serializers.ValidationError(_("Košík je prázdny."))
         if len(items) > 30:
             raise serializers.ValidationError(_("Objednávka obsahuje príliš veľa položiek."))
         return items
 
+    def validate_motorcycles(self, bikes):
+        if len(bikes) > MAX_RESERVED_MOTORCYCLES:
+            raise serializers.ValidationError(
+                _("Naraz môžete rezervovať najviac %d motocykle.") % MAX_RESERVED_MOTORCYCLES
+            )
+        blocked = [b.title for b in bikes if b.stock_status in (Motorcycle.StockStatus.SOLD,
+                                                                Motorcycle.StockStatus.RESERVED)]
+        if blocked:
+            raise serializers.ValidationError(_("Už nie je možné rezervovať: %s.") % ", ".join(blocked))
+        return list(dict.fromkeys(bikes))
+
     def validate(self, attrs):
         attrs = super().validate(attrs)
+        if not attrs.get("items") and not attrs.get("motorcycles"):
+            raise serializers.ValidationError({"items": _("Košík je prázdny.")})
+        if not attrs.get("items"):
+            attrs["delivery_method"] = Order.Delivery.PICKUP  # motorcycles are always handed over in store
         if attrs.get("delivery_method") == Order.Delivery.COURIER:
             missing = {f: _("Pri doručení kuriérom je toto pole povinné.")
                        for f in ("street", "city", "postal_code") if not attrs.get(f, "").strip()}
@@ -75,7 +94,8 @@ class OrderCreateSerializer(HoneypotSerializerMixin, GdprConsentMixin, serialize
 
     @transaction.atomic
     def create(self, validated_data):
-        items = validated_data.pop("items")
+        items = validated_data.pop("items", [])
+        motorcycles = validated_data.pop("motorcycles", [])
 
         # Lock stock rows to avoid overselling under concurrent orders.
         ids = {item["accessory"].pk for item in items}
@@ -91,6 +111,7 @@ class OrderCreateSerializer(HoneypotSerializerMixin, GdprConsentMixin, serialize
             raise serializers.ValidationError({"items": errors})
 
         order = Order.objects.create(**validated_data)
+        order.reserved_motorcycles.set(motorcycles)
         subtotal = Decimal("0")
         for item in items:
             accessory = locked[item["accessory"].pk]
@@ -109,7 +130,12 @@ class OrderCreateSerializer(HoneypotSerializerMixin, GdprConsentMixin, serialize
         return order
 
     def to_representation(self, instance):
-        return {"number": instance.number, "total": str(instance.total), "shipping_price": str(instance.shipping_price)}
+        return {
+            "number": instance.number,
+            "total": str(instance.total),
+            "shipping_price": str(instance.shipping_price),
+            "reserved_motorcycles": [b.title for b in instance.reserved_motorcycles.all()],
+        }
 
 
 def shipping_for(method: str, subtotal: Decimal) -> Decimal:

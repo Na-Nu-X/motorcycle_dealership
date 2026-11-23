@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from apps.core.testing import CUSTOMER, ApiTestCase
+from apps.core.testing import CUSTOMER, ApiTestCase, make_bike
 from apps.shop.models import Accessory, Order
 
 
@@ -97,3 +97,30 @@ class OrderApiTests(ApiTestCase):
         a = self.client.post("/api/orders/", self.payload(), format="json").json()["number"]
         b = self.client.post("/api/orders/", self.payload(), format="json").json()["number"]
         self.assertEqual(int(b) - int(a), 1)
+
+    def test_motorcycle_reservation_only(self):
+        bike = make_bike(model="Monster")
+        response = self.client.post(
+            "/api/orders/", self.payload(items=[], motorcycles=[bike.slug], delivery_method="courier"), format="json"
+        )
+        self.assertEqual(response.status_code, 201, response.content)
+        self.assertEqual(response.json()["reserved_motorcycles"], [bike.title])
+        order = Order.objects.get()
+        self.assertEqual(order.delivery_method, "pickup")
+        self.assertEqual(order.total, Decimal("0"))
+
+    def test_mixed_cart(self):
+        bike = make_bike(model="Monster")
+        response = self.client.post("/api/orders/", self.payload(motorcycles=[bike.slug]), format="json")
+        self.assertEqual(response.status_code, 201, response.content)
+        self.assertEqual(Order.objects.get().reserved_motorcycles.count(), 1)
+
+    def test_sold_motorcycle_cannot_be_reserved(self):
+        bike = make_bike(model="Monster", stock_status="sold")
+        response = self.client.post("/api/orders/", self.payload(items=[], motorcycles=[bike.slug]), format="json")
+        self.assertIn("motorcycles", response.json())
+
+    def test_too_many_motorcycles(self):
+        slugs = [make_bike(model=f"Bike {i}").slug for i in range(4)]
+        response = self.client.post("/api/orders/", self.payload(items=[], motorcycles=slugs), format="json")
+        self.assertIn("motorcycles", response.json())
